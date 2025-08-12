@@ -19,7 +19,7 @@ public class UserStatesService {
         userStatesMap.put(userState.getUserId(), userState);
     }
 
-    public void removeState(Long userId) {
+    public void removeStateByUserId(Long userId) {
         userStatesMap.remove(userId);
     }
 }

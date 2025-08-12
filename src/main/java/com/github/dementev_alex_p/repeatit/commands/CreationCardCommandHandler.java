@@ -2,20 +2,15 @@ package com.github.dementev_alex_p.repeatit.commands;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.user_states.CreationCardAdditionData;
 import com.github.dementev_alex_p.repeatit.user_states.UserState;
 import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.util.Map;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -29,31 +24,28 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handleCommand(AbsSender sender, Update update) throws TelegramApiException {
-        final Long userId = update.hasCallbackQuery()
-                ? update.getCallbackQuery().getFrom().getId()
-                : update.getMessage().getFrom().getId();
-        final UserState userState = userStatesService.getStateByUserId(userId);
+    public void handleCommand(final AbsSender sender, final MessageContext context) throws TelegramApiException {
+
+        final UserState userState = userStatesService.getStateByUserId(context.userId());
         if (userState == null) {
-            beginCreationCard(sender, update, userId);
+            beginCreationCard(sender, context);
             return;
         }
         String nextText = "";
-        final Message message = update.getMessage();
         long cardId = ((CreationCardAdditionData) userState.getAdditionalData()).getCardId();
         final Card card = cardService.finaCardById(cardId);
         if (card.getName() == null) {
-            card.setName(message.getText());
+            card.setName(context.message());
             nextText = "Напишите обратную сторону карточки";
         } else {
-            card.setDescription(message.getText());
-            userStatesService.removeState(userId);
+            card.setDescription(context.message());
+            userStatesService.removeStateByUserId(context.userId());
             nextText = "Карточка успешно создана!";
         }
 
         final SendMessage sendMessage = SendMessage
                 .builder()
-                .chatId(message.getChat().getId())
+                .chatId(context.chatId())
                 .text(nextText)
                 //.replyMarkup(createInlineKeyboard())
                 .build();
@@ -61,18 +53,18 @@ public class CreationCardCommandHandler implements CommandHandler {
         sender.execute(sendMessage);
     }
 
-    private void beginCreationCard(AbsSender sender, Update update, Long userId) throws TelegramApiException{
+    private void beginCreationCard(AbsSender sender, MessageContext context) throws TelegramApiException{
 
-        final Card card = cardService.createCard(userId);
+        final Card card = cardService.createCard(context.userId());
         final UserState state = new UserState(
-                userId,
+                context.userId(),
                 CommandEnum.CREATE_CARD,
                 new CreationCardAdditionData(card.getId())
         );
         userStatesService.addState(state);
         sender.execute(
                 SendMessage.builder()
-                        .chatId(update.getCallbackQuery().getMessage().getChatId())
+                        .chatId(context.chatId())
                         .text("Напишите лицевую сторону карточки")
                         .build()
         );

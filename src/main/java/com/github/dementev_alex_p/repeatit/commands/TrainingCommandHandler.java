@@ -2,6 +2,7 @@ package com.github.dementev_alex_p.repeatit.commands;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.user_states.TrainingAdditionData;
 import com.github.dementev_alex_p.repeatit.user_states.UserState;
 import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
@@ -10,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -19,7 +19,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,25 +36,17 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handleCommand(AbsSender sender, Update update) throws TelegramApiException {
-        final Long userId = update.hasCallbackQuery()
-                ? update.getCallbackQuery().getFrom().getId()
-                : update.getMessage().getFrom().getId();
-
-        final Long chatId = update.hasCallbackQuery()
-                ? update.getCallbackQuery().getMessage().getChatId()
-                : update.getMessage().getChatId();
-
-        final UserState userState = userStatesService.getStateByUserId(userId);
+    public void handleCommand(AbsSender sender, MessageContext context) throws TelegramApiException {
+        final UserState userState = userStatesService.getStateByUserId(context.userId());
         if (userState == null) {
-            final List<Card> userCards = cardService.findByUserId(userId);
+            final List<Card> userCards = cardService.findByUserId(context.userId());
             if (userCards.isEmpty()) {
                 throw new TelegramApiException("У пользователя нет карточек");//TODO Заменить на ответное сособщение
             }
-            final UserState state = new UserState(userId, CommandEnum.TRAINING, new TrainingAdditionData(userCards));
+            final UserState state = new UserState(context.userId(), CommandEnum.TRAINING, new TrainingAdditionData(userCards));
             userStatesService.addState(state);
-            sender.execute(SendMessage.builder().chatId(chatId).text("Начнем тренировку").build());
-            sendNextCard(state, chatId, sender);
+            sender.execute(SendMessage.builder().chatId(context.chatId()).text("Начнем тренировку").build());
+            sendNextCard(state, context.chatId(), sender);
             return;
         }
 
@@ -64,15 +55,13 @@ public class TrainingCommandHandler implements CommandHandler {
         }
         final TrainingAdditionData trainingPlan = (TrainingAdditionData) userState.getAdditionalData();
         final Card previousCard = trainingPlan.getPlan().remove(0); //todo обратока ответа от пользоватетя по предыдущей карте
-        if (StringUtils.substringAfter(update.getCallbackQuery().getData(), "?").equals(YES_ANSWER.getKey())){
+        if (StringUtils.substringAfter(context.data(), "?").equals(YES_ANSWER.getKey())){
             trainingPlan.getSuccessNumber().incrementAndGet();
         } else {
             trainingPlan.getFailNumber().incrementAndGet();
         }
-
-
         trainingPlan.getCurrentNumber().incrementAndGet();
-        sendNextCard(userState, chatId, sender);
+        sendNextCard(userState, context.chatId(), sender);
     }
 
     private void sendNextCard(UserState state, Long chatId, AbsSender sender) throws TelegramApiException {
@@ -85,7 +74,7 @@ public class TrainingCommandHandler implements CommandHandler {
                     .text(String.format("Тренировка завершена! \n Правильных :%d, Неправильных %d", trainingPlan.getSuccessNumber().get(), trainingPlan.getFailNumber().get()))
                     .replyMarkup(InlineKeyboardMarkup.builder().keyboardRow(Collections.singletonList(InlineKeyboardButton.builder().text("Вернуться в главное меню").callbackData("/start").build())).build())
                     .build();
-            userStatesService.removeState(state.getUserId());
+            userStatesService.removeStateByUserId(state.getUserId());
             sender.execute(sendMessage);
             return;
         }

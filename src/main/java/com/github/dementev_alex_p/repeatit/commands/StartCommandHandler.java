@@ -1,9 +1,8 @@
 package com.github.dementev_alex_p.repeatit.commands;
 
+import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -12,14 +11,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
 public class StartCommandHandler implements CommandHandler {
 
-    private String greeting = """
+    private static final String GREETING = """
             %s, приветствую!
             """;
     @Override
@@ -28,18 +25,12 @@ public class StartCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handleCommand(AbsSender sender, Update update) throws TelegramApiException {
-        final Long chatId = update.hasCallbackQuery()
-                ? update.getCallbackQuery().getMessage().getChatId()
-                : update.getMessage().getChatId();
+    public void handleCommand(final AbsSender sender, final MessageContext context) throws TelegramApiException {
 
-        final String userName = update.hasCallbackQuery()
-                ? update.getCallbackQuery().getFrom().getFirstName()
-                : update.getMessage().getChat().getFirstName();
         final SendMessage sendMessage = SendMessage
                 .builder()
-                .chatId(chatId)
-                .text(String.format(greeting, userName))
+                .chatId(context.chatId())
+                .text(String.format(GREETING, context.userName()))
                 .replyMarkup(createInlineKeyboard())
                 .build();
 

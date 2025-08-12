@@ -2,14 +2,14 @@ package com.github.dementev_alex_p.repeatit;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandHandler;
+import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.message_context.MessageContextUtils;
 import com.github.dementev_alex_p.repeatit.user_states.UserState;
 import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -45,22 +45,23 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         try {
+            final MessageContext context = MessageContextUtils.create(update);
 
             if (isStart(update)) {
-                handlersByCommand.get(CommandEnum.START).handleCommand(this, update);
+                handlersByCommand.get(CommandEnum.START).handleCommand(this, context);
             }
 
             if(update.hasCallbackQuery()) {
                 final String commandCode = StringUtils.substringBefore(update.getCallbackQuery().getData(), "?");
                 CommandEnum command = CommandEnum.findCommandByCode(commandCode);
-                handlersByCommand.get(command).handleCommand(this, update);
+                handlersByCommand.get(command).handleCommand(this, context);
             }
 
             if (update.hasMessage() && update.getMessage().hasText()) {
                 final Long userId = update.getMessage().getFrom().getId();
                 final UserState userState = userStatesService.getStateByUserId(userId);
                 if (userState != null) {
-                    handlersByCommand.get(userState.getCurrentState()).handleCommand(this, update);
+                    handlersByCommand.get(userState.getCurrentState()).handleCommand(this, context);
                 }
             }
         //TODO Вернуть ошибку
