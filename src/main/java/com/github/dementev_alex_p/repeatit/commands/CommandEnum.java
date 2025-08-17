@@ -7,10 +7,14 @@ import java.util.stream.Stream;
 
 @AllArgsConstructor
 public enum CommandEnum {
-    START("/start", "Запуск"),
+    START("/start", "Главнове меню"),
     CREATE_CARD("/create_card", "Создать новую карточку"),
     VIEW_CARDS("/view_cards", "Посмотреть карточки"),
-    TRAINING("/training", "Изучение кароточек"),
+    START_TRAINING("/training", "Начать тренинг"),
+//TODO:
+//    STOP_TRAINING("/stop_training", "Остановить тренинг"),
+//    REMEMBER_CARD("/remember_card", "✅"),
+//    NOT_REMEMBER_CARD("/not_remember_card", "❌"),
     ;
 
     @Getter

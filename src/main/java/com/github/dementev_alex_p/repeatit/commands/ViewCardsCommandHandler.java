@@ -2,10 +2,11 @@ package com.github.dementev_alex_p.repeatit.commands;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -25,7 +26,7 @@ public class ViewCardsCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handleCommand(AbsSender sender, MessageContext context) throws TelegramApiException {
+    public CommandProcessingResult processCommand(AbsSender sender, MessageContext context) throws TelegramApiException {
 
         final List<Card> userCards = cardService.findByUserId(context.userId());
         final AtomicInteger number = new AtomicInteger(1);
@@ -35,13 +36,7 @@ public class ViewCardsCommandHandler implements CommandHandler {
                 .collect(Collectors.joining("\n"));
 
         //todo обработать кейс с пустым списокм кароточек
-        final SendMessage sendMessage = SendMessage
-                .builder()
-                .chatId(context.chatId())
-                .text(String.format("Всего карточек: %d.\n%s", userCards.size(), cards))
-                //.replyMarkup(createInlineKeyboard())
-                .build();
-
-        sender.execute(sendMessage);
+        return new CommandProcessingResult(
+                String.format("Всего карточек: %d.\n%s", userCards.size(), cards), new CommandLine(CommandEnum.START_TRAINING));
     }
 }

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class TrainingAdditionData implements AdditionData{
-    private final List<Card> plan;
+    private final List<Card> cardsForStudy;
     private final int totalNumber;
     private final AtomicInteger currentNumber;
     private final AtomicInteger successNumber;
@@ -16,9 +16,9 @@ public class TrainingAdditionData implements AdditionData{
 
 
 
-    public TrainingAdditionData(List<Card> plan) {
-        this.plan = plan;
-        this.totalNumber = plan.size();
+    public TrainingAdditionData(List<Card> cardsForStudy) {
+        this.cardsForStudy = cardsForStudy;
+        this.totalNumber = cardsForStudy.size();
         currentNumber = new AtomicInteger(1);
         successNumber = new AtomicInteger();
         failNumber = new AtomicInteger();

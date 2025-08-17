@@ -5,14 +5,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
 public class UserStatesService {
     private final Map<Long, UserState> userStatesMap = new HashMap<>();
 
-    public UserState getStateByUserId(final long userId) {
-        return userStatesMap.get(userId);
+    public Optional<UserState> getStateByUserId(final long userId) {
+        return Optional.ofNullable(userStatesMap.get(userId));
     }
 
     public void addState(final UserState userState) {
