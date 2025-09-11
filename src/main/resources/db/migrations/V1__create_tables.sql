@@ -1,4 +1,4 @@
-CREATE SCHEMA repeat_it;
+CREATE SCHEMA IF NOT EXISTS repeat_it;
 
 SET
 search_path TO repeat_it;

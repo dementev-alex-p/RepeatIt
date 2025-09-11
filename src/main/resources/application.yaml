@@ -1,7 +1,7 @@
 telegram:
   bot:
     name : RepeatIt_tgbot
-    token: 7747921479:AAHnTGPmT3Wx6iretMBuK5k65lArPc5SX1o
+    token:
 
 spring:
   datasource:
@@ -19,3 +19,12 @@ spring:
       hibernate:
         format_sql: true
         default_schema: repeat_it
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
+    schemas: repeat_it
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    table: flyway_schema_history
