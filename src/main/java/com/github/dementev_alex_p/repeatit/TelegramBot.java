@@ -25,15 +25,13 @@ import java.util.stream.Collectors;
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
     private final String bootName;
-    private final UserStatesService userStatesService;
     private final MessageContextService messageContextService;
 
     private final Map<CommandEnum, CommandHandler> handlersByCommand;
 
-    public TelegramBot(final TgBotConfig tgBotConfig, final UserStatesService userStatesService, MessageContextService messageContextService, final List<CommandHandler> commandHandlers) {
+    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, final List<CommandHandler> commandHandlers) {
         super(new DefaultBotOptions(), tgBotConfig.getToken());
         bootName = tgBotConfig.getName();
-        this.userStatesService = userStatesService;
         this.messageContextService = messageContextService;
         handlersByCommand = commandHandlers
                 .stream()

@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -39,6 +40,10 @@ public class Card {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(name = "card_collection_id")
+    @Nullable
+    private Long cardCollectionId;
 
     public Card(Long userId) {
         this.userId = userId;
