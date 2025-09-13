@@ -5,7 +5,7 @@ telegram:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/mydatabase
+    url: jdbc:postgresql://localhost:5432/repeat_it_db
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
