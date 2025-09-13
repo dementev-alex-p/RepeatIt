@@ -1,7 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS repeat_it;
 
-SET
-search_path TO repeat_it;
+SET search_path TO repeat_it;
 
 CREATE TABLE tg_user
 (
@@ -24,6 +23,10 @@ CREATE TABLE card
     card_collection_id BIGINT REFERENCES card_collection (card_collection_id),
     front_side         TEXT,
     back_side          TEXT,
+    streak             INTEGER NOT NULL DEFAULT 0,
+    easiness_factor    DECIMAL(4,2) NOT NULL DEFAULT 2.5,
+    interval_days      INTEGER NOT NULL DEFAULT 1,
+    next_repeat_date   DATE DEFAULT (NOW() + INTERVAL '1 day'),
     created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -40,11 +43,16 @@ CREATE TABLE user_state
 
 CREATE TABLE practice
 (
-    practice_id              BIGSERIAL PRIMARY KEY,
-    user_id                  BIGINT                   NOT NULL REFERENCES tg_user (user_id),
-    current_practice_card_id BIGINT                   NOT NULL,
-    started_at               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    finished_at              TIMESTAMP                NOT NULL DEFAULT NOW()
+    practice_id BIGSERIAL PRIMARY KEY,
+    user_id     BIGINT                    NOT NULL REFERENCES tg_user (user_id),
+    started_at  TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT NOW(),
+    finished_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TYPE recall_score AS ENUM (
+  'FAIL_RECALL',
+  'DIFFICULT_RECALL',
+  'PERFECT_RECALL'
 );
 
 CREATE TABLE practice_card
@@ -52,9 +60,6 @@ CREATE TABLE practice_card
     practice_card_id BIGSERIAL PRIMARY KEY,
     practice_id      BIGINT NOT NULL REFERENCES practice (practice_id),
     card_id          BIGINT NOT NULL REFERENCES card (card_id),
-    was_known        BOOLEAN,
+    recall_score     recall_score,
     reviewed_at      TIMESTAMP WITH TIME ZONE
 );
-
-ALTER TABLE practice
-    ADD FOREIGN KEY (current_practice_card_id) REFERENCES practice_card (practice_card_id);

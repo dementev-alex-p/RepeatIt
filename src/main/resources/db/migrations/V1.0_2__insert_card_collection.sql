@@ -1,9 +1,11 @@
+SET search_path TO repeat_it;
+
 INSERT INTO card_collection (name, author_id, is_public)
-VALUES ('Сталицы 50 популярных стран', 1, true);
+VALUES ('Столицы 50 популярных стран', 1, true);
 
 INSERT INTO card (user_id, card_collection_id, front_side, back_side)
 SELECT 1,
-       (SELECT card_collection_id FROM card_collection WHERE name = 'Сталицы 50 популярных стран'),
+       (SELECT card_collection_id FROM card_collection WHERE name = 'Столицы 50 популярных стран'),
        front_side,
        back_side
 FROM (VALUES ('Франция', 'Париж'),
