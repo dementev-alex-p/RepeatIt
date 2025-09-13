@@ -5,20 +5,27 @@ search_path TO repeat_it;
 
 CREATE TABLE tg_user
 (
-    user_id    BIGINT PRIMARY KEY,
-    username   VARCHAR(100) NOT NULL,
-    first_name VARCHAR(100),
-    last_name  VARCHAR(100)
+    user_id  BIGINT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE card_collection
+(
+    card_collection_id BIGSERIAL PRIMARY KEY,
+    author_id          BIGINT NOT NULL REFERENCES tg_user(user_id),
+    name               VARCHAR(100) NOT NULL,
+    is_public          BOOLEAN      NOT NULL
 );
 
 CREATE TABLE card
 (
-    card_id    BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT                   NOT NULL REFERENCES tg_user (user_id),
-    front_side TEXT,
-    back_side  TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    card_id            BIGSERIAL PRIMARY KEY,
+    user_id            BIGINT NOT NULL REFERENCES tg_user (user_id),
+    card_collection_id BIGINT REFERENCES card_collection (card_collection_id),
+    front_side         TEXT,
+    back_side          TEXT,
+    created_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE user_state
@@ -43,7 +50,7 @@ CREATE TABLE practice
 CREATE TABLE practice_card
 (
     practice_card_id BIGSERIAL PRIMARY KEY,
-    practice_id      BIGINT NOT NULL REFERENCES practice(practice_id),
+    practice_id      BIGINT NOT NULL REFERENCES practice (practice_id),
     card_id          BIGINT NOT NULL REFERENCES card (card_id),
     was_known        BOOLEAN,
     reviewed_at      TIMESTAMP WITH TIME ZONE
