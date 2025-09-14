@@ -48,6 +48,5 @@ public class CardCollectionService {
                 .toList();
 
         cardService.createCards(cards);
-        return newCardCollection;
     }
 }
