@@ -10,11 +10,13 @@ CREATE TABLE tg_user
 
 CREATE TABLE card_collection
 (
-    card_collection_id BIGSERIAL PRIMARY KEY,
-    author_id          BIGINT NOT NULL REFERENCES tg_user(user_id),
-    name               VARCHAR(100) NOT NULL,
-    is_public          BOOLEAN      NOT NULL
+    card_collection_id   BIGSERIAL PRIMARY KEY,
+    author_id            BIGINT       NOT NULL REFERENCES tg_user (user_id),
+    parent_collection_id BIGINT,
+    name                 VARCHAR(100) NOT NULL,
+    is_public            BOOLEAN      NOT NULL
 );
+ALTER TABLE card_collection ADD FOREIGN KEY (parent_collection_id) REFERENCES card_collection(card_collection_id);
 
 CREATE TABLE card
 (

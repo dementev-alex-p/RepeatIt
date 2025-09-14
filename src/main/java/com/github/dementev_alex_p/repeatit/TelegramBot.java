@@ -58,6 +58,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             return handlersByCommand.get(context.command()).processCommand(this, context);
         } catch (Exception e) {
             System.out.println("ERROR. Cause: " + e.getMessage());
+            e.printStackTrace();
             return new CommandProcessingResult("Произошла ошибка! " + e.getMessage());
         }
     }

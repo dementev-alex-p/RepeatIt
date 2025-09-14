@@ -1,7 +1,7 @@
 telegram:
   bot:
     name : RepeatIt_tgbot
-    token:
+    token: ${TG_BOT_TOKEN}
 
 spring:
   datasource:

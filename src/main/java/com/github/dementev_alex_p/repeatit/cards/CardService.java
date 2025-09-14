@@ -37,4 +37,7 @@ public class CardService {
     }
 
 
+    public void createCards(List<Card> cards) {
+        cardRepository.saveAll(cards);
+    }
 }

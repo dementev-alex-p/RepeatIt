@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -47,6 +48,13 @@ public class Card {
 
     public Card(Long userId) {
         this.userId = userId;
+    }
+
+    public Card(final String name, final String description, final long userId, final long cardCollectionId) {
+        this.name = name;
+        this.description = description;
+        this.userId = userId;
+        this.cardCollectionId = cardCollectionId;
     }
 
 }

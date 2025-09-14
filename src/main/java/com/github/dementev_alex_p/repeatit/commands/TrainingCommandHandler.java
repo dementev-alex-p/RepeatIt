@@ -53,7 +53,7 @@ public class TrainingCommandHandler implements CommandHandler {
         }
         final UserState userState = userStateOpt.get();
         if (userState.getCurrentCommand() != CommandEnum.START_TRAINING) {
-            throw new TelegramApiException("You are not in a training state");
+            userStatesService.removeStateByUserId(context.userId());
         }
         final TrainingAdditionData trainingPlan = (TrainingAdditionData) userState.getAdditionalData();
         final Card previousCard = trainingPlan.getCardsForStudy().remove(0); //todo обратока ответа от пользоватетя по предыдущей карте

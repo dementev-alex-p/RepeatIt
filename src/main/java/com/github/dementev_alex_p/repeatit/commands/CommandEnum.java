@@ -8,9 +8,12 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public enum CommandEnum {
     START("/start", "Главнове меню"),
-    CREATE_CARD("/create_card", "Создать новую карточку"),
     VIEW_CARDS("/view_cards", "Посмотреть карточки"),
     START_TRAINING("/training", "Начать тренинг"),
+    ADD_CARD("/add_card", "Добавить карточку"),
+    CREATE_CARD("/create_card", "Создать новую карточку"),
+    ADD_CARDS_FROM_COLLECTION("/add_cards_from_collection", "Добавить карточки из коллекции"),
+    IMPORT_CARDS("/import_cards", "Импортировать карточки"),
 //TODO:
 //    STOP_TRAINING("/stop_training", "Остановить тренинг"),
 //    REMEMBER_CARD("/remember_card", "✅"),
