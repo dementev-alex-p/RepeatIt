@@ -34,19 +34,9 @@ public class CardCollectionService {
         final User author = userService.getReferenceById(userId);
 
         final CardCollection newCardCollection = cardCollectionRepository.save(
-                new CardCollection(author,parentCollection.getName(), parentCollection.getId(), false)
+                new CardCollection(author, parentCollection.getName(), parentCollection.getId(), false)
         );
-        final List<Card> cards = parentCollection
-                .getCards()
-                .stream()
-                .map(c -> new Card(
-                        c.getName(),
-                        c.getDescription(),
-                        userId,
-                        newCardCollection.getId()
-                ))
-                .toList();
 
-        cardService.createCards(cards);
+        cardService.forkCards(parentCollection.getCards(), userId, newCardCollection.getId());
     }
 }

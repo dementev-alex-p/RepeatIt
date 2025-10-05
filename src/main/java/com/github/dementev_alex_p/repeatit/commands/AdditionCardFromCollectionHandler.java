@@ -49,7 +49,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
             return beginChoosingCollection(context);
         }
         userStatesService.removeStateByUserId(context.userId());
-        long chosenCollectionId = Long.parseLong(StringUtils.substringAfter(context.data().orElseThrow(), "?"));
+        long chosenCollectionId = Long.parseLong(StringUtils.substringAfter(context.data().orElseThrow(), "/"));
         final CardCollection chosenCollection = cardCollectionService.findById(chosenCollectionId).orElseThrow();
         cardCollectionService.forkCardCollection(chosenCollection, context.userId());
         return new CommandProcessingResult(

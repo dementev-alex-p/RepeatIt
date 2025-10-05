@@ -38,7 +38,7 @@ public class StartCommandHandler implements CommandHandler {
 
         return new CommandProcessingResult(
                 String.format(GREETING, context.userName()),
-                Stream.of(CommandEnum.START_TRAINING, CommandEnum.ADD_CARD, CommandEnum.VIEW_CARDS)
+                Stream.of(CommandEnum.TRAINING, CommandEnum.ADD_CARD, CommandEnum.VIEW_CARDS)
                         .map(CommandLine::new)
                         .toList()
         );

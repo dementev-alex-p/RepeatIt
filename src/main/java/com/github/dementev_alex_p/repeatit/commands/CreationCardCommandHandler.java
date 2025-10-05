@@ -37,12 +37,12 @@ public class CreationCardCommandHandler implements CommandHandler {
 
         final String message = context.message().orElseThrow();
         long cardId = ((CreationCardAdditionData) userState.get().getAdditionalData()).getCardId();
-        final Card card = cardService.finaCardById(cardId);
-        if (card.getName() == null) {
-            cardService.updateCard(card.withName(message));
+        final Card card = cardService.findCardById(cardId);
+        if (card.getFrontSide() == null) {
+            cardService.updateFrontSideCard(card, message);
             return new CommandProcessingResult("Напишите обратную сторону карточки");
         } else {
-            cardService.updateCard(card.withDescription(message));
+            cardService.updateBackSideCard(card, message);
             userStatesService.removeStateByUserId(context.userId());
             return new CommandProcessingResult("Карточка успешно создана!", new CommandLine(CommandEnum.VIEW_CARDS));
         }

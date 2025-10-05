@@ -2,7 +2,6 @@ package com.github.dementev_alex_p.repeatit.commands;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +31,13 @@ public class ViewCardsCommandHandler implements CommandHandler {
         final AtomicInteger number = new AtomicInteger(1);
         final String cards = userCards
                 .stream()
-                .map(card -> String.format("%d. %s --> %s",number.getAndIncrement(), card.getName(), card.getDescription()))
+                .map(card -> String.format("%d. %s --> %s",number.getAndIncrement(), card.getFrontSide(), card.getBackSide()))
                 .collect(Collectors.joining("\n"));
 
         //todo обработать кейс с пустым списокм кароточек
-        return new CommandProcessingResult(
-                String.format("Всего карточек: %d.\n%s", userCards.size(), cards), new CommandLine(CommandEnum.START_TRAINING));
+        return CommandProcessingResult.createWithVerticalButtons(
+                String.format("Всего карточек: %d.\n%s", userCards.size(), cards),
+                CommandEnum.TRAINING, CommandEnum.ADD_CARD
+        );
     }
 }

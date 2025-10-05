@@ -7,13 +7,13 @@ import java.util.stream.Stream;
 
 @AllArgsConstructor
 public enum CommandEnum {
-    START("/start", "Главнове меню"),
-    VIEW_CARDS("/view_cards", "Посмотреть карточки"),
-    START_TRAINING("/training", "Начать тренинг"),
-    ADD_CARD("/add_card", "Добавить карточку"),
-    CREATE_CARD("/create_card", "Создать новую карточку"),
-    ADD_CARDS_FROM_COLLECTION("/add_cards_from_collection", "Добавить карточки из коллекции"),
-    IMPORT_CARDS("/import_cards", "Импортировать карточки"),
+    START("start", "Главнове меню"),
+    VIEW_CARDS("view_cards", "Просмотр карточек"),
+    TRAINING("training", "Тренировка"),
+    ADD_CARD("add_card", "Добавление карточек"),
+    CREATE_CARD("create_card", "Создание карточки"),
+    ADD_CARDS_FROM_COLLECTION("add_cards_from_collection", "Добавление из коллекций"),
+    IMPORT_CARDS("import_cards", "Импорт"),
 //TODO:
 //    STOP_TRAINING("/stop_training", "Остановить тренинг"),
 //    REMEMBER_CARD("/remember_card", "✅"),

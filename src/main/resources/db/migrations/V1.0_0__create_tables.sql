@@ -43,25 +43,20 @@ CREATE TABLE user_state
     updated_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE practice
+CREATE TABLE training
 (
-    practice_id BIGSERIAL PRIMARY KEY,
+    training_id BIGSERIAL PRIMARY KEY,
     user_id     BIGINT                    NOT NULL REFERENCES tg_user (user_id),
     started_at  TIMESTAMP WITH TIME ZONE  NOT NULL DEFAULT NOW(),
-    finished_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    finished_at  TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TYPE recall_score AS ENUM (
-  'FAIL_RECALL',
-  'DIFFICULT_RECALL',
-  'PERFECT_RECALL'
-);
-
-CREATE TABLE practice_card
+CREATE TABLE training_card
 (
-    practice_card_id BIGSERIAL PRIMARY KEY,
-    practice_id      BIGINT NOT NULL REFERENCES practice (practice_id),
+    training_card_id BIGSERIAL PRIMARY KEY,
+    training_id      BIGINT NOT NULL REFERENCES training (training_id),
     card_id          BIGINT NOT NULL REFERENCES card (card_id),
-    recall_score     recall_score,
-    reviewed_at      TIMESTAMP WITH TIME ZONE
+    recall_score     VARCHAR(20),
+    reviewed_at      TIMESTAMP WITH TIME ZONE,
+    order_index      INTEGER NOT NULL
 );

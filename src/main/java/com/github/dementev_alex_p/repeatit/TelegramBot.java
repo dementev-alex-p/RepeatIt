@@ -65,9 +65,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void sendUserResponse(MessageContext context, CommandProcessingResult processingResult) {
         final List<CommandLine> availableCommands = processingResult.availableCommands();
-        final ReplyKeyboard inlineKeyboard = createInlineKeyboard(
-                enrichAvailableCommandsWithDefault(availableCommands)
-        );
+        final ReplyKeyboard inlineKeyboard = createInlineKeyboard(availableCommands);
 
         final SendMessage sendMessage = SendMessage
                 .builder()
@@ -90,7 +88,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         return commands;
     }
 
-    private ReplyKeyboard createInlineKeyboard(final LinkedHashSet<CommandLine> availableCommands) {
+    private ReplyKeyboard createInlineKeyboard(final List<CommandLine> availableCommands) {
         final List<List<InlineKeyboardButton>> buttons = availableCommands
                 .stream()
                 .map(this::createButtonRow)

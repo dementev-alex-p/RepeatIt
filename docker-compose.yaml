@@ -42,7 +42,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/repeat_it_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
-      - BOT_TOKEN=${TG_BOT_TOKEN}
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
     depends_on:
       - postgres
     networks:

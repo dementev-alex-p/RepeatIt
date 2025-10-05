@@ -1,38 +1,56 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "card")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Setter(AccessLevel.PRIVATE)
+@Setter(AccessLevel.PROTECTED)
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Card {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "card_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    @ToString.Exclude
     private Long id;
 
     @Column(name = "user_id")
     @NotNull
+    @ToString.Exclude
     private Long userId;
 
-    @With
-    @Column(name = "front_side")
-    private String name;
+    @Column(name = "card_collection_id")
+    private Long cardCollectionId;
 
-    @With
+    @Column(name = "front_side")
+    @ToString.Exclude
+    private String frontSide;
+
     @Column(name = "back_side")
-    private String description;
+    @ToString.Exclude
+    private String backSide;
+
+    @Column(name = "streak")
+    private Integer streak;
+
+    @Column(name = "easiness_factor", columnDefinition = "numeric")
+    private Float easinessFactor;
+
+    @Column(name = "interval_days")
+    private Integer intervalDays;
+
+    @Column(name = "next_repeat_date")
+    private LocalDate nextRepeatDate = LocalDate.now();
 
     @Column(name = "created_at")
     @CreationTimestamp
@@ -42,19 +60,19 @@ public class Card {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Column(name = "card_collection_id")
-    @Nullable
-    private Long cardCollectionId;
-
-    public Card(Long userId) {
-        this.userId = userId;
+    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId) {
+        this(userId);
+        this.frontSide = frontSide;
+        this.backSide = backSide;
+        this.cardCollectionId = cardCollectionId;
     }
 
-    public Card(final String name, final String description, final long userId, final long cardCollectionId) {
-        this.name = name;
-        this.description = description;
+    protected Card(final Long userId) {
         this.userId = userId;
-        this.cardCollectionId = cardCollectionId;
+        streak = 0;
+        easinessFactor = 2.5F;
+        intervalDays = 0;
+        nextRepeatDate = LocalDate.now();
     }
 
 }
