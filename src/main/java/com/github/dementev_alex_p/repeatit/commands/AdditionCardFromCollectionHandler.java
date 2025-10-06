@@ -28,6 +28,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
     private final CardService cardService;
 
     private final static String CHOOSE_COLLECTION_MSG = "Выберите коллекцию из списка";
+    private final static String COLLECTION_ID = "collection_id";
     private final static String NOT_FOUND_COLLECTIONS_MSG = "Публичных коллекций не найдено";
     private final static String SUCCESS_ADDITION_MSG = "Коллекция '%s' их %d карточек добавлена!";
 
@@ -49,7 +50,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
             return beginChoosingCollection(context);
         }
         userStatesService.removeStateByUserId(context.userId());
-        long chosenCollectionId = Long.parseLong(StringUtils.substringAfter(context.data().orElseThrow(), "/"));
+        long chosenCollectionId = Long.parseLong(context.commandParameters().get(COLLECTION_ID));
         final CardCollection chosenCollection = cardCollectionService.findById(chosenCollectionId).orElseThrow();
         cardCollectionService.forkCardCollection(chosenCollection, context.userId());
         return new CommandProcessingResult(
@@ -70,7 +71,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
                 .map(c -> new CommandButton(
                         CommandEnum.ADD_CARDS_FROM_COLLECTION,
                         String.format("%s. %s", number.getAndIncrement(), c.getName()),
-                        String.valueOf(c.getId())
+                        String.format("%s=%d", COLLECTION_ID, c.getId())
                 ))
                 .map(CommandLine::new)
                 .toList();
