@@ -1,8 +1,10 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
+import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -44,5 +46,42 @@ public class CardService {
                         collectionId
                 )).toList();
         cardRepository.saveAll(cardsForSave);
+    }
+
+    public List<Card> findCardsForTraining(long userId) {
+        return cardRepository.findCardsForTraining(userId);
+    }
+
+    public void recalcParameters(final long cardId, final RecallScoreEnum newRecallScore) {
+        final Card card = cardRepository.findById(cardId).orElseThrow();
+
+        final float easinessFactor = calcNewEasinessFactor(card.getEasinessFactor(), newRecallScore.getVeight());
+        final int streak = calcStreak(card.getStreak(), newRecallScore.getVeight());
+        final int interval = calcInterval(card.getIntervalDays(), easinessFactor, streak);
+        final LocalDate nextRepeatDate = LocalDate.now().plusDays(interval);
+
+        card.setEasinessFactor(easinessFactor);
+        card.setStreak(streak);
+        card.setIntervalDays(interval);
+        card.setNextRepeatDate(nextRepeatDate);
+        cardRepository.save(card);
+    }
+
+    private int calcInterval(final int intervalDays, final float easinessFactor, final int streak) {
+        return switch (streak) {
+            case 0 -> 1;
+            case 1 -> 3;
+            case 2 -> 6;
+            default -> Math.round(intervalDays * easinessFactor);
+        };
+    }
+
+    private int calcStreak(final int streak, final int score) {
+       return score >= 3 ? streak + 1 : 0;
+    }
+
+    private float calcNewEasinessFactor(float ef, int score) {
+        final float easinessFactor =  ef + (0.1f - (5 - score) * (0.08f + (5 - score) * 0.02f));
+        return easinessFactor < 1.3 ? 1.3f : easinessFactor;
     }
 }

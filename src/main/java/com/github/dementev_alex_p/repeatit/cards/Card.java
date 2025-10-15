@@ -41,13 +41,13 @@ public class Card {
     private String backSide;
 
     @Column(name = "streak")
-    private Integer streak;
+    private int streak;
 
     @Column(name = "easiness_factor", columnDefinition = "numeric")
-    private Float easinessFactor;
+    private float easinessFactor;
 
     @Column(name = "interval_days")
-    private Integer intervalDays;
+    private int intervalDays;
 
     @Column(name = "next_repeat_date")
     private LocalDate nextRepeatDate = LocalDate.now();

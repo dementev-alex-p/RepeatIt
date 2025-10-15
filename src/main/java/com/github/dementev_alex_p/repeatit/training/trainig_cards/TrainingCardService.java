@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.training.trainig_cards;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
+import com.github.dementev_alex_p.repeatit.cards.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +14,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TrainingCardService {
 
     private final TrainingCardRepository trainingCardRepository;
+    private final CardService cardService;
 
     public void scoreRecall(final TrainingCard trainingCard, final RecallScoreEnum recallScore) {
         trainingCard.setRecallScore(recallScore);
         trainingCard.setReviewedAt(LocalDateTime.now());
         trainingCardRepository.save(trainingCard);
+        cardService.recalcParameters(trainingCard.getCardId(), recallScore);
     }
 
     public List<TrainingCard> createCardsForTraining(final List<Card> cards, final long trainingId) {

@@ -11,16 +11,16 @@ import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
-import com.github.dementev_alex_p.repeatit.user_states.UserState;
 import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,10 +33,14 @@ public class TrainingCommandHandler implements CommandHandler {
     public final CardService cardService;
     private static final String START_TRAINING = """
             Начнем тренировку!
-            Карточек к изучению: %d.
+            Карточек для повторения: %d (из них %d обязательных)
             Карточка 1.
+            %s
             """;
-    private static final String CONTINUE_TRAINING = "Карточка %d/%d";
+    private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
+    private static final String CONTINUE_TRAINING = """
+            Карточка %d/%d (%d%%)
+            """;
     private static final String END_TRAINING = """
             Тренировка завершена!
             Статистика:
@@ -56,12 +60,13 @@ public class TrainingCommandHandler implements CommandHandler {
 
     @Transactional
     @Override
-    public CommandProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public CommandProcessingResult processCommand(final AbsSender sender, final MessageContext context) {
 
-        final boolean isNewTraining = CollectionUtils.isEmpty(context.commandParameters());
-        final Training training = isNewTraining
-                ? createTraining(context)
-                : trainingService.findCurrentTrainig(context.userId()).orElseGet(() -> createTraining(context));
+        if (isStartTrainingCommands(context)) {
+            return createTraining(context);
+        }
+
+        final Training training = trainingService.findCurrentTrainig(context.userId()).orElseThrow();
 
         if (isFinishTrainingCommand(context)) {
             return endTraining(training);
@@ -76,6 +81,10 @@ public class TrainingCommandHandler implements CommandHandler {
         }
 
         return continueTraining(training, nextCard.get());
+    }
+
+    private boolean isStartTrainingCommands(final MessageContext context) {
+        return CollectionUtils.isEmpty(context.commandParameters());
     }
 
     private boolean isFinishTrainingCommand(final MessageContext context) {
@@ -113,13 +122,13 @@ public class TrainingCommandHandler implements CommandHandler {
     private CommandProcessingResult continueTraining(final Training training, final TrainingCard trainingCard) {
         final Card card = cardService.findCardById(trainingCard.getCardId());
         final String nextCardText = String.format(NEXT_CARD, card.getFrontSide(), card.getBackSide());
+        final int percentage = trainingCard.getOrderIndex() * 100 / training.getTrainingCards().size();
         final String continueTrainingText = String.format(
-                CONTINUE_TRAINING, trainingCard.getOrderIndex(), training.getTrainingCards().size()
+                CONTINUE_TRAINING, trainingCard.getOrderIndex(), training.getTrainingCards().size(), percentage
         );
         final List<CommandLine> commandLines = new ArrayList<>(
                 createAvailableScoreForCard(trainingCard.getTrainingCardId())
         );
-        commandLines.add(createFinishTrainingCommand());
         return new CommandProcessingResult(
                 continueTrainingText + nextCardText,
                 commandLines
@@ -148,36 +157,52 @@ public class TrainingCommandHandler implements CommandHandler {
         return CommandProcessingResult.createWithVerticalButtons(statisticText, CommandEnum.START, CommandEnum.TRAINING);
     }
 
-    private Training createTraining(MessageContext context) {
-        final List<Card> userCards = cardService.findByUserId(context.userId());
-        if (userCards.isEmpty()) {
-            throw new RuntimeException("У пользователя нет карточек");//TODO Заменить на ответ с предложением завести карточки
+    private CommandProcessingResult createTraining(final MessageContext context) {
+        final Map<Long, Card> cardsForTrainingById = cardService
+                .findCardsForTraining(context.userId())
+                .stream()
+                .collect(Collectors.toMap(Card::getId, Function.identity()));
+        if (CollectionUtils.isEmpty(cardsForTrainingById)) {
+            return CommandProcessingResult.createWithVerticalButtons(
+                    NOT_FOUND_CARDS_FOR_TRAINING, CommandEnum.ADD_CARD, CommandEnum.START
+            );
         }
-        return trainingService.create(context.userId(), userCards);
+        final Training training = trainingService.create(context.userId(), new ArrayList<>(cardsForTrainingById.values()));
+        final TrainingCard firstTrainingCard = training
+                .getTrainingCards()
+                .stream()
+                .min(Comparator.comparingInt(TrainingCard::getOrderIndex))
+                .orElseThrow();
+        final Card firstCard = cardsForTrainingById.get(firstTrainingCard.getCardId());
 
-//        final Card firstCard = userCards.iterator().next();
-//
-//        final String message = String.format(START_TRAINING, userCards.size())
-//                + String.format(NEXT_CARD, firstCard.getFrontSide(), firstCard.getBackSide());
-//        final List<CommandLine> availableAnswers = createAvailableScoreForCard(firstCard.getId());
-//        availableAnswers.add(createFinishTrainingCommand());
-//        return new CommandProcessingResult(message, createAvailableScoreForCard(firstCard.getId()));
+        final String cardText = String.format(NEXT_CARD, firstCard.getFrontSide(), firstCard.getBackSide());
+
+        final long requiredCards = cardsForTrainingById.values().stream()
+                .filter(card -> !card.getNextRepeatDate().isAfter(LocalDate.now()))
+                .count();
+
+        return new CommandProcessingResult(
+                String.format(START_TRAINING, training.getTrainingCards().size(), requiredCards, cardText),
+                createAvailableScoreForCard(firstTrainingCard.getTrainingCardId())
+        );
     }
 
-    private List<CommandLine> createAvailableScoreForCard(final long id) {
-        return Stream.of(RecallScoreEnum.PERFECT_RECALL, RecallScoreEnum.DIFFICULT_RECALL, RecallScoreEnum.FAIL_RECALL)
+
+    private List<CommandLine> createAvailableScoreForCard(final long trainingCardId) {
+        final List<CommandButton> scores = Stream.of(RecallScoreEnum.PERFECT_RECALL, RecallScoreEnum.DIFFICULT_RECALL, RecallScoreEnum.FAIL_RECALL)
                 .map(score -> new CommandButton(
                         CommandEnum.TRAINING,
                         score.getText(),
-                        String.format(AVAILABLE_SCORE_PARAMETER, score.name(), id)
-                )).map(CommandLine::new)
+                        String.format(AVAILABLE_SCORE_PARAMETER, score.name(), trainingCardId)
+                ))
                 .toList();
-    }
-
-    private CommandLine createFinishTrainingCommand() {
-        return new CommandLine(
+        final List<CommandLine> commandLines = new ArrayList<>();
+        commandLines.add(new CommandLine(scores));
+        commandLines.add(new CommandLine(
                 new CommandButton(CommandEnum.TRAINING, "Завершить тренировку", FINISH_TRAINING_PARAMETER)
-        );
+        ));
+        return commandLines;
+
     }
 
     private RecallScoreEnum extractRecallScore(MessageContext context) {
