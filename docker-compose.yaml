@@ -9,12 +9,12 @@ volumes:
 
 services:
   postgres:
-    image: postgres:13
+    image: postgres:13-alpine
     container_name: repeat_it_postgres
     environment:
       POSTGRES_DB: repeat_it_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -29,11 +29,15 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 1G
+          cpus: '0.5'
+          memory: 300M
+        reservations:
+          cpus: '0.2'
+          memory: 200M
+
   app:
     image: dementevalexp/repeat_it_bot
-    container_name: repeat-it-bot
+    container_name: repeat_it_bot
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -43,8 +47,17 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+      - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
-
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 600M
+        reservations:
+          cpus: '0.4'
+          memory: 300M
