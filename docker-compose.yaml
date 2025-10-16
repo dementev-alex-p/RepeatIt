@@ -16,7 +16,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -45,7 +45,6 @@ services:
       - TZ=Europe/Moscow
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/repeat_it_db
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
       - DB_PASSWORD=${DB_PASSWORD}
     depends_on:
