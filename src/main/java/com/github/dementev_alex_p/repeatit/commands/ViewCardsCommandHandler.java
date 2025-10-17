@@ -25,7 +25,7 @@ public class ViewCardsCommandHandler implements CommandHandler {
     }
 
     @Override
-    public CommandProcessingResult processCommand(AbsSender sender, MessageContext context) throws TelegramApiException {
+    public CommandProcessingResult processCommand(AbsSender sender, MessageContext context)  {
 
         final List<Card> userCards = cardService.findByUserId(context.userId());
         final AtomicInteger number = new AtomicInteger(1);

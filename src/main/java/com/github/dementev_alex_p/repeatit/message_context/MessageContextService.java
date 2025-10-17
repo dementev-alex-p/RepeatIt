@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class MessageContextService {
     private final UserStatesService userStatesService;
+    private final static String START_MESSAGE = "/start";
 
     public MessageContext create(Update update) {
 
@@ -57,13 +58,15 @@ public class MessageContextService {
             return new Command(command, parameters);
         }
         if (message.isPresent()) {
-            if (message.get().equals("/" + CommandEnum.START.getCode())) {
-                return new Command(CommandEnum.START, null);
+            if (message.get().startsWith("/")) {
+                if (message.get().equals(START_MESSAGE)) {
+                    return new Command(CommandEnum.START, new HashMap<>());
+                } else {
+                    throw new IllegalArgumentException("Команда не поддерживается!");
+                }
             }
-            final Optional<UserState> userState = userStatesService.getStateByUserId(userId);
-            if (userState.isPresent()) {
-                return new Command(userState.get().getCurrentCommand(), null);
-            }
+            //TODO тут нужно будет узнать последнее сообщение к пользователю и точечно определить команду
+            return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
         }
         throw new IllegalArgumentException("Сообщение пользователя не поддерживается!");
     }

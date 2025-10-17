@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 @Component
 @RequiredArgsConstructor
 public class TrainingCommandHandler implements CommandHandler {
-    public final UserStatesService userStatesService;
     public final TrainingService trainingService;
     public final TrainingCardService trainingCardService;
     public final CardService cardService;

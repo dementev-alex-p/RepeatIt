@@ -27,9 +27,9 @@ public class CardService {
         cardRepository.save(card);
     }
 
-    public void updateBackSideCard(Card card, String backSide) {
+    public Card updateBackSideCard(Card card, String backSide) {
         card.setBackSide(backSide);
-        cardRepository.save(card);
+        return cardRepository.save(card);
     }
 
     public List<Card> findByUserId(long userId) {

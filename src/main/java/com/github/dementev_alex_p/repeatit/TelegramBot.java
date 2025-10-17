@@ -7,11 +7,13 @@ import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContextService;
-import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -26,13 +28,15 @@ import java.util.stream.Collectors;
 public class TelegramBot extends TelegramLongPollingBot {
     private final String bootName;
     private final MessageContextService messageContextService;
+    private final TgMessageService tgMessageService;
 
     private final Map<CommandEnum, CommandHandler> handlersByCommand;
 
-    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, final List<CommandHandler> commandHandlers) {
+    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, TgMessageService tgMessageService, final List<CommandHandler> commandHandlers) {
         super(new DefaultBotOptions(), tgBotConfig.getToken());
         bootName = tgBotConfig.getName();
         this.messageContextService = messageContextService;
+        this.tgMessageService = tgMessageService;
         handlersByCommand = commandHandlers
                 .stream()
                 .collect(Collectors.toMap(
@@ -76,10 +80,21 @@ public class TelegramBot extends TelegramLongPollingBot {
                 .build();
 
         try {
-            execute(sendMessage);
+            Message message = execute(sendMessage);
+            tgMessageService.save(convertMessage(message, context));
         } catch (TelegramApiException e) {
             System.out.println("ERROR. Cause: " + e.getMessage());
         }
+    }
+
+    private TgMessage convertMessage(final Message sentMessage, MessageContext context) {
+        return new TgMessage(
+                sentMessage.getMessageId(),
+                context.userId(),
+                sentMessage.getChatId(),
+                context.command().getCode(),
+                sentMessage.getText()
+        );
     }
 
     private LinkedHashSet<CommandLine> enrichAvailableCommandsWithDefault(final List<CommandLine> availableCommands) {
