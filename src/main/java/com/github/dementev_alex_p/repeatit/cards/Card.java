@@ -60,15 +60,20 @@ public class Card {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId) {
-        this(userId);
-        this.frontSide = frontSide;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private CardStatus status;
+
+    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId, final CardStatus status) {
+        this(userId, frontSide, status);
         this.backSide = backSide;
         this.cardCollectionId = cardCollectionId;
     }
 
-    protected Card(final Long userId) {
+    protected Card(final Long userId, final String frontSide, final CardStatus status) {
         this.userId = userId;
+        this.frontSide = frontSide;
+        this.status = status;
         streak = 0;
         easinessFactor = 2.5F;
         intervalDays = 0;

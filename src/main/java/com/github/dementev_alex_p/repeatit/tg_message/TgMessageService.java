@@ -1,6 +1,5 @@
 package com.github.dementev_alex_p.repeatit.tg_message;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,5 +10,8 @@ public class TgMessageService {
 
     public void save(final TgMessage tgMessage) {
         tgMessageRepository.save(tgMessage);
+    }
+    public TgMessage findLastByUserId(final long userId) {
+        return tgMessageRepository.findLastByUserId(userId).orElseThrow();
     }
 }

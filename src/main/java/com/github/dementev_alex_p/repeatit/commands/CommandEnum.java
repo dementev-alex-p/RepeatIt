@@ -7,23 +7,26 @@ import java.util.stream.Stream;
 
 @AllArgsConstructor
 public enum CommandEnum {
-    START("start", "Главнове меню"),
-    VIEW_CARDS("view_cards", "Просмотр карточек"),
-    TRAINING("training", "Тренировка"),
-    ADD_CARD("add_card", "Добавление карточек"),
-    CREATE_CARD("create_card", "Создание карточки"),
-    ADD_CARDS_FROM_COLLECTION("add_cards_from_collection", "Добавление из коллекций"),
-    IMPORT_CARDS("import_cards", "Импорт"),
-//TODO:
-//    STOP_TRAINING("/stop_training", "Остановить тренинг"),
-//    REMEMBER_CARD("/remember_card", "✅"),
-//    NOT_REMEMBER_CARD("/not_remember_card", "❌"),
-    ;
+    START("start", "Главнове меню", null),
+    TRAINING("training", "Тренировка", null),
+    CARDS("cards", "Карточки", new CommandParameter("page", "1")),
+    ADD_CARD("add_card", "➕ Добавить", null),
+    SEARCH("search_card", "\uD83D\uDD0D\uFE0E Поиск", null),
+    CREATE_CARD("create_card", "➕ Создать", new CommandParameter("action", "start")),
+    ADD_CARDS_FROM_COLLECTION("add_cards_from_collection", "📚 Коллекции", null),
+    IMPORT_CARDS("import_cards", "📥 Импорт", null),
+    EDIT_CARD("edit_card", "Редактирование карточки", new CommandParameter("action", "start_edition")),
+    ADD_CARD_TO_COLLECTION("add_card_to_collection", "Добавить в коллекцию", null),
+    COLLECTIONS("collections", "Коллекции карточек", null),
+    SETTINGS("settings", "Настройки", null),
+    DELETE_CARD("delete_card", "Удалить карточку", null);
 
     @Getter
     private final String code;
     @Getter
     private final String description;
+    @Getter
+    private final CommandParameter defaultParameter;
 
     public static CommandEnum findCommandByCode(final String code) {
         return Stream.of(values())

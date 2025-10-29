@@ -1,8 +1,11 @@
 package com.github.dementev_alex_p.repeatit.message_context;
 
+import com.github.dementev_alex_p.repeatit.commands.EditionCardCommandHandler;
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.user_states.UserState;
-import com.github.dementev_alex_p.repeatit.user_states.UserStatesService;
+import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,17 +13,16 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class MessageContextService {
-    private final UserStatesService userStatesService;
-    private final static String START_MESSAGE = "/start";
+    private final TgMessageService tgMessageService;
+    private static final String START_MESSAGE = "/start";
+    private static final String EDIT_MESSAGE = "/edit_card";
 
     public MessageContext create(Update update) {
 
@@ -41,8 +43,9 @@ public class MessageContextService {
         final Optional<String> data = Optional.ofNullable(update.getCallbackQuery()).map(CallbackQuery::getData);
 
         final Optional<String> message = Optional.ofNullable(update.getMessage()).map(Message::getText);
+        final Optional<Integer> messageId = Optional.ofNullable(update.getMessage()).map(Message::getMessageId);
         final Command command = determinateCommand(data, message, userId);
-        return new MessageContext(userId, userName, chatId, data, message, command.commandEnum, command.parameters);
+        return new MessageContext(userId, userName, chatId, messageId, data, message, command.commandEnum, command.parameters);
     }
 
     private Command determinateCommand(
@@ -61,11 +64,28 @@ public class MessageContextService {
             if (message.get().startsWith("/")) {
                 if (message.get().equals(START_MESSAGE)) {
                     return new Command(CommandEnum.START, new HashMap<>());
+                } else if (message.get().startsWith(EDIT_MESSAGE)) {
+                    final long cardId = Long.parseLong(message.get().substring(EDIT_MESSAGE.length()).trim());
+                    final CommandParameter cardIdParameter = CommandButtonUtils.createCardIdParameter(cardId);
+                    final CommandParameter actionParameter = CommandButtonUtils.createActionParameter(
+                            EditionCardCommandHandler.START_EDITION_ACTION
+                    );
+
+                    return new Command(
+                            CommandEnum.EDIT_CARD,
+                            Map.of(
+                                    cardIdParameter.getName(), cardIdParameter.getValue(),
+                                    actionParameter.getName(), actionParameter.getValue()
+                            )
+                    );
                 } else {
-                    throw new IllegalArgumentException("Команда не поддерживается!");
+                        throw new IllegalArgumentException("Команда не поддерживается!");
                 }
             }
-            //TODO тут нужно будет узнать последнее сообщение к пользователю и точечно определить команду
+            final TgMessage lastMessage = tgMessageService.findLastByUserId(userId);
+            if (lastMessage.isAnswerExcepted()) {
+                return new Command(lastMessage.getCommand(), new HashMap<>());
+            }
             return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
         }
         throw new IllegalArgumentException("Сообщение пользователя не поддерживается!");

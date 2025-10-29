@@ -4,9 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum RecallScoreEnum {
-      FAIL_RECALL("\uD83D\uDD34 0", 0),
-      DIFFICULT_RECALL("\uD83D\uDFE1 50/50", 3),
-      PERFECT_RECALL("\uD83D\uDFE2 100", 5)
+      FAIL_RECALL("\uD83D\uDE29", 0),
+      DIFFICULT_RECALL("\uD83E\uDD14", 3),
+      PERFECT_RECALL("\uD83D\uDE03", 5)
       ;
       private final String text;
       private final int veight;

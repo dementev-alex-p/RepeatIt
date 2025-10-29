@@ -1,9 +1,7 @@
 package com.github.dementev_alex_p.repeatit.tg_message;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -34,7 +32,8 @@ public class TgMessage {
     @Column(name = "command")
     @NotNull
     @ToString.Exclude
-    private String command;
+    @Enumerated(EnumType.STRING)
+    private CommandEnum command;
 
     @Column(name = "message_text")
     @NotNull
@@ -50,13 +49,18 @@ public class TgMessage {
     @ToString.Exclude
     private boolean isDeleted;
 
-    public TgMessage(Integer messageId, long userId, Long chatId, String commandCode, String text) {
+    @Column(name = "is_answer_excepted")
+    @ToString.Exclude
+    private boolean isAnswerExcepted;
+
+    public TgMessage(Integer messageId, long userId, Long chatId, CommandEnum command, String text, boolean isAnswerExcepted) {
         this.messageText = text;
-        this.command = commandCode;
+        this.command = command;
         this.chatId = chatId;
         this.userId = userId;
         this.tgMessageId = messageId;
         this.createdAt = LocalDateTime.now();
         this.isDeleted = false;
+        this.isAnswerExcepted = isAnswerExcepted;
     }
 }

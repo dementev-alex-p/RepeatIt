@@ -1,20 +1,31 @@
 package com.github.dementev_alex_p.repeatit;
 
+import com.github.dementev_alex_p.repeatit.cards.Card;
+import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
+import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContextService;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResult;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultArticle;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -24,19 +35,22 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
     private final String bootName;
     private final MessageContextService messageContextService;
     private final TgMessageService tgMessageService;
+    private final CardService cardService;
 
     private final Map<CommandEnum, CommandHandler> handlersByCommand;
 
-    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, TgMessageService tgMessageService, final List<CommandHandler> commandHandlers) {
+    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, TgMessageService tgMessageService, CardService cardService, final List<CommandHandler> commandHandlers) {
         super(new DefaultBotOptions(), tgBotConfig.getToken());
         bootName = tgBotConfig.getName();
         this.messageContextService = messageContextService;
         this.tgMessageService = tgMessageService;
+        this.cardService = cardService;
         handlersByCommand = commandHandlers
                 .stream()
                 .collect(Collectors.toMap(
@@ -52,55 +66,112 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        if (update.hasInlineQuery()) {
+            processSearchRequest(update.getInlineQuery());
+        }
         final MessageContext context = messageContextService.create(update);
-        final CommandProcessingResult processingResult = processRequest(context);
-        sendUserResponse(context, processingResult);
+        final ProcessingResult processingResult = processRequest(context);
+        replyToUser(context, processingResult);
     }
 
-    private CommandProcessingResult processRequest(MessageContext context) {
+    private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
+        processingResult
+                .getMessagesToSend()
+                .forEach(messageToSend -> sendMessageToUser(context, messageToSend));
+        processingResult
+                .getMessageIdsToDelete()
+                .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
+
+    }
+
+    private void deleteMessage(final MessageContext context, final int messageId) {
         try {
-            return handlersByCommand.get(context.command()).processCommand(this, context);
-        } catch (Exception e) {
-            System.out.println("ERROR. Cause: " + e.getMessage());
-            e.printStackTrace();
-            return new CommandProcessingResult("Произошла ошибка! " + e.getMessage());
+            execute(new DeleteMessage(String.valueOf(context.chatId()), messageId));
+            Thread.sleep(50);
+        } catch (final Exception e) {
+            log.error(e.getMessage());
         }
     }
 
-    private void sendUserResponse(MessageContext context, CommandProcessingResult processingResult) {
-        final List<CommandLine> availableCommands = processingResult.availableCommands();
+    private void processSearchRequest(final InlineQuery inlineQuery) {
+        final long userId = inlineQuery.getFrom().getId();
+        final String query = inlineQuery.getQuery();
+        final List<Card> cards = cardService.searchCard(userId, query);
+
+        // Конвертируем в формат Telegram
+        List<InlineQueryResult> inlineResults = cards
+                .stream()
+                .map(this::toInlineQueryResult)
+                .collect(Collectors.toList());
+
+        final AnswerInlineQuery answer = AnswerInlineQuery
+                .builder()
+                .inlineQueryId(inlineQuery.getId())
+                .results(inlineResults)
+                .cacheTime(10)
+                .isPersonal(true)
+                .build();
+        try {
+            execute(answer);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public InlineQueryResult toInlineQueryResult(Card card) {
+
+        final InputTextMessageContent messageContent = InputTextMessageContent.builder()
+                .messageText("/edit_card " + card.getId())
+                .build();
+
+        return InlineQueryResultArticle.builder()
+                .id(card.getId().toString())
+                .title(card.getFrontSide())
+                .description(card.getBackSide())
+                .inputMessageContent(messageContent)
+                .build();
+    }
+
+    private ProcessingResult processRequest(MessageContext context) {
+        try {
+            return handlersByCommand.get(context.command()).processCommand(this, context);
+        } catch (Exception e) {
+            log.error("ERROR. Cause: {}", e.getMessage());
+            e.printStackTrace();
+            return new ProcessingResult(new MessageToSend("Произошла ошибка! " + e.getMessage()));
+        }
+    }
+
+    private void sendMessageToUser(MessageContext context, MessageToSend messageToSend) {
+        final List<CommandLine> availableCommands = messageToSend.getAvailableCommands();
         final ReplyKeyboard inlineKeyboard = createInlineKeyboard(availableCommands);
 
         final SendMessage sendMessage = SendMessage
                 .builder()
                 .chatId(context.chatId())
-                .text(processingResult.message())
+                .text(messageToSend.getText())
                 .parseMode("HTML")
                 .replyMarkup(inlineKeyboard)
                 .build();
 
         try {
             Message message = execute(sendMessage);
-            tgMessageService.save(convertMessage(message, context));
-        } catch (TelegramApiException e) {
-            System.out.println("ERROR. Cause: " + e.getMessage());
+            tgMessageService.save(convertMessage(message, context, messageToSend.isAnswerExcepted()));
+            Thread.sleep(50);
+        } catch (Exception e) {
+            log.error("ERROR. Cause: {}", e.getMessage());
         }
     }
 
-    private TgMessage convertMessage(final Message sentMessage, MessageContext context) {
+    private TgMessage convertMessage(final Message sentMessage, final MessageContext context, final boolean isAnswerExcepted) {
         return new TgMessage(
                 sentMessage.getMessageId(),
                 context.userId(),
                 sentMessage.getChatId(),
-                context.command().getCode(),
-                sentMessage.getText()
+                context.command(),
+                sentMessage.getText(),
+                isAnswerExcepted
         );
-    }
-
-    private LinkedHashSet<CommandLine> enrichAvailableCommandsWithDefault(final List<CommandLine> availableCommands) {
-        final LinkedHashSet<CommandLine> commands = new LinkedHashSet<>(availableCommands);
-        commands.add(new CommandLine(new CommandButton(CommandEnum.START)));
-        return commands;
     }
 
     private ReplyKeyboard createInlineKeyboard(final List<CommandLine> availableCommands) {
@@ -120,12 +191,31 @@ public class TelegramBot extends TelegramLongPollingBot {
         return commandLine
                 .commandButtonList()
                 .stream()
-                .map(commandButton -> InlineKeyboardButton
-                        .builder()
-                        .text(commandButton.text())
-                        .callbackData(String.format("%s?%s", commandButton.command().getCode(), commandButton.parameter()))
-                        .build()
-                ).toList();
+                .map(this::convertButton)
+                .toList();
+    }
+
+    private InlineKeyboardButton convertButton(CommandButton commandButton) {
+        final InlineKeyboardButton.InlineKeyboardButtonBuilder builder = InlineKeyboardButton.builder();
+        builder.text(commandButton.text());
+
+        if (commandButton.command() == CommandEnum.SEARCH) {
+            builder.switchInlineQueryCurrentChat("");
+        } else {
+            builder.callbackData(String.format(
+                    "%s?%s",
+                    commandButton.command().getCode(),
+                    convertParametersToString(commandButton.parameters())
+            ));
+        }
+        return builder.build();
+    }
+
+    private String convertParametersToString(List<CommandParameter> parameters) {
+        return parameters
+                .stream()
+                .map(parameter -> String.format("%s=%s", parameter.getName(), parameter.getValue()))
+                .collect(Collectors.joining("&"));
     }
 
 }
