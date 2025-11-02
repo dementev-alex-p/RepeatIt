@@ -3,12 +3,13 @@ package com.github.dementev_alex_p.repeatit;
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
+import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContextService;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
@@ -20,6 +21,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
@@ -31,7 +33,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,6 +79,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         processingResult
+                .getMessagesToEdit()
+                .forEach(messageToEdit -> editMessage(context, messageToEdit));
+        processingResult
                 .getMessagesToSend()
                 .forEach(messageToSend -> sendMessageToUser(context, messageToSend));
         processingResult
@@ -87,6 +93,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void deleteMessage(final MessageContext context, final int messageId) {
         try {
             execute(new DeleteMessage(String.valueOf(context.chatId()), messageId));
+            tgMessageService.softDeleteMessageById(messageId);
             Thread.sleep(50);
         } catch (final Exception e) {
             log.error(e.getMessage());
@@ -163,6 +170,27 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    private void editMessage(MessageContext context, MessageToEdit messageToEdit) {
+        final List<CommandLine> availableCommands = messageToEdit.getAvailableCommands();
+        final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(availableCommands);
+
+        final EditMessageText editMessage = EditMessageText.builder()
+                .chatId(context.chatId())
+                .messageId(messageToEdit.getMessageId())
+                .text(messageToEdit.getText())
+                .parseMode("HTML")
+                .replyMarkup(inlineKeyboard)
+                .build();
+
+        try {
+            execute(editMessage);
+            tgMessageService.update(convertMessage(messageToEdit, context));
+            Thread.sleep(50);
+        } catch (Exception e) {
+            log.error("ERROR. Cause: {}", e.getMessage());
+        }
+    }
+
     private TgMessage convertMessage(final Message sentMessage, final MessageContext context, final boolean isAnswerExcepted) {
         return new TgMessage(
                 sentMessage.getMessageId(),
@@ -174,7 +202,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         );
     }
 
-    private ReplyKeyboard createInlineKeyboard(final List<CommandLine> availableCommands) {
+    private TgMessage convertMessage(final MessageToEdit editMessage, final MessageContext context) {
+        return new TgMessage(
+                editMessage.getMessageId(),
+                context.userId(),
+                context.chatId(),
+                context.command(),
+                editMessage.getText(),
+                editMessage.isAnswerExcepted()
+        );
+    }
+
+    private InlineKeyboardMarkup createInlineKeyboard(final List<CommandLine> availableCommands) {
         final List<List<InlineKeyboardButton>> buttons = availableCommands
                 .stream()
                 .map(this::createButtonRow)

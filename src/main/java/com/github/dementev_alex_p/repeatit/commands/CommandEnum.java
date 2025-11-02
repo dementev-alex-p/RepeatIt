@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.commands;
 
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,7 +9,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public enum CommandEnum {
     START("start", "Главнове меню", null),
-    TRAINING("training", "Тренировка", null),
+    TRAINING("training", "Тренировка", CommandButtonUtils.createActionParameter("start")),
     CARDS("cards", "Карточки", new CommandParameter("page", "1")),
     ADD_CARD("add_card", "➕ Добавить", null),
     SEARCH("search_card", "\uD83D\uDD0D\uFE0E Поиск", null),

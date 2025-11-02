@@ -41,8 +41,4 @@ public class CommandButtonUtils {
                 createCardIdParameter(cardId)
         );
     }
-
-    public static CommandParameter createSkipParameter() {
-        return new CommandParameter(ACTION_PARAMETER_TEXT, "skip_back_side");
-    }
 }

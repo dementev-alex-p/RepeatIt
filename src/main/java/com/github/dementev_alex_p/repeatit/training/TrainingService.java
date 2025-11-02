@@ -18,6 +18,7 @@ public class TrainingService {
     private final TrainingCardService trainingCardService;
 
     public Training create(long userId, List<Card> cards){
+        findCurrentTrainig(userId).ifPresent(this::finishTraining);
         final Training training = trainingRepository.save(new Training(userId, LocalDateTime.now()));
         final List<TrainingCard> trainingCards = trainingCardService.createCardsForTraining(cards, training.getId());
         training.setTrainingCards(trainingCards);
