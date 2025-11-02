@@ -5,7 +5,7 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
@@ -197,15 +197,15 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private InlineKeyboardButton convertButton(CommandButton commandButton) {
         final InlineKeyboardButton.InlineKeyboardButtonBuilder builder = InlineKeyboardButton.builder();
-        builder.text(commandButton.text());
+        builder.text(commandButton.getText());
 
-        if (commandButton.command() == CommandEnum.SEARCH) {
+        if (commandButton.getCommand() == CommandEnum.SEARCH) {
             builder.switchInlineQueryCurrentChat("");
         } else {
             builder.callbackData(String.format(
                     "%s?%s",
-                    commandButton.command().getCode(),
-                    convertParametersToString(commandButton.parameters())
+                    commandButton.getCommand().getCode(),
+                    convertParametersToString(commandButton.getParameters())
             ));
         }
         return builder.build();

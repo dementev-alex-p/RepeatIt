@@ -3,9 +3,11 @@ package com.github.dementev_alex_p.repeatit.utils;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.handlers.EditionCardCommandHandler;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 
 public class CommandButtonUtils {
+
+    public static final String ACTION_PARAMETER_TEXT = "action";
 
     public static CommandButton createForEditCardAfterCreation(final long cardId) {
         return new CommandButton(
@@ -28,7 +30,7 @@ public class CommandButtonUtils {
         return new CommandParameter("card_id", String.valueOf(cardId));
     }
     public static CommandParameter createActionParameter(final String action) {
-        return new CommandParameter("action", action);
+        return new CommandParameter(ACTION_PARAMETER_TEXT, action);
     }
 
 
@@ -38,5 +40,9 @@ public class CommandButtonUtils {
                 CommandEnum.DELETE_CARD.getDescription(),
                 createCardIdParameter(cardId)
         );
+    }
+
+    public static CommandParameter createSkipParameter() {
+        return new CommandParameter(ACTION_PARAMETER_TEXT, "skip_back_side");
     }
 }

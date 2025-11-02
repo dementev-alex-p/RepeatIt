@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.result;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 
 import java.util.List;
 

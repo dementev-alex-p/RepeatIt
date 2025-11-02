@@ -4,7 +4,7 @@ import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;

@@ -1,13 +1,21 @@
-package com.github.dementev_alex_p.repeatit.commands.result;
+package com.github.dementev_alex_p.repeatit.commands.result.buttons;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public record CommandButton (CommandEnum command, String text, List<CommandParameter> parameters){
+@Getter
+@AllArgsConstructor
+public class CommandButton {
+    private final CommandEnum command;
+    private final String text;
+    private final List<CommandParameter> parameters;
+
     public CommandButton(CommandEnum command){
         this(
                 command,

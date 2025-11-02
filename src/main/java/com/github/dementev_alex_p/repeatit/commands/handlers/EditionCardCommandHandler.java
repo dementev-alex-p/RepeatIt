@@ -5,6 +5,8 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.cards.CardStatus;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.SkipBackSideButton;
 import com.github.dementev_alex_p.repeatit.utils.CardUtils;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
@@ -45,6 +47,9 @@ public class EditionCardCommandHandler implements CommandHandler {
         if (context.message().isPresent() && context.commandParameters().isEmpty()) {
             return updateCardContent(context.message().get(), context.userId());
         }
+        if (isAction(context, SkipBackSideButton.ACTION_VALUE)) {
+            return updateCardContent(null, context.userId());
+        }
 
         final long cardId = Long.parseLong(context.commandParameters().get(CARD_ID));
         final Card card = cardService.findCardById(cardId);
@@ -57,7 +62,8 @@ public class EditionCardCommandHandler implements CommandHandler {
         }
         if (isAction(context, BACK_SIDE_EDITION_ACTION)) {
             cardService.updateStatus(card, CardStatus.EDITING_BACK_SIDE);
-            return new ProcessingResult(new MessageToSend(BACK_SIDE_EDITION_TEXT, Collections.emptyList(), true));
+            final CommandLine skip = new CommandLine(new SkipBackSideButton(CommandEnum.EDIT_CARD, cardId));
+            return new ProcessingResult(new MessageToSend(BACK_SIDE_EDITION_TEXT, Collections.singletonList(skip), true));
         }
 
         throw new RuntimeException();
@@ -79,9 +85,12 @@ public class EditionCardCommandHandler implements CommandHandler {
         final Card updatedCard = card.getStatus() == CardStatus.EDITING_FRONT_SIDE
                 ? cardService.updateContent(card, newValue, card.getBackSide())
                 : cardService.updateContent(card, card.getFrontSide(), newValue);
+        return createSuccessUpdateResult(updatedCard);
+    }
+    private ProcessingResult createSuccessUpdateResult(final Card card) {
         return new ProcessingResult(new MessageToSend(
-                String.format(SUCCESS_EDITION_TEXT, CardUtils.convertCardToTextForView(updatedCard)),
-                createCommandLines(updatedCard)
+                String.format(SUCCESS_EDITION_TEXT, CardUtils.convertCardToTextForView(card)),
+                createCommandLines(card)
         ));
     }
 
