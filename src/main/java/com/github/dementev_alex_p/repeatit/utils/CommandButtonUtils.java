@@ -2,7 +2,7 @@ package com.github.dementev_alex_p.repeatit.utils;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
-import com.github.dementev_alex_p.repeatit.commands.EditionCardCommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.handlers.EditionCardCommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;
 
 public class CommandButtonUtils {

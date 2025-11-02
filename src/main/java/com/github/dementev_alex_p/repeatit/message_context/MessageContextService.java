@@ -1,6 +1,6 @@
 package com.github.dementev_alex_p.repeatit.message_context;
 
-import com.github.dementev_alex_p.repeatit.commands.EditionCardCommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.handlers.EditionCardCommandHandler;
 import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;

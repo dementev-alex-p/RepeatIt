@@ -1,7 +1,9 @@
-package com.github.dementev_alex_p.repeatit.commands;
+package com.github.dementev_alex_p.repeatit.commands.handlers;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.utils.CardUtils;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandButton;

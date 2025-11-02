@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class CardsCommand implements CommandHandler{
+public class CardsCommand implements CommandHandler {
 
     private static final String YOUR_CARDS = """
             <strong>Карточки</strong>
