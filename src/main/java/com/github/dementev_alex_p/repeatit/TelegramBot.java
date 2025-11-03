@@ -79,14 +79,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         processingResult
-                .getMessageIdsToDelete()
-                .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
-        processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
         processingResult
                 .getMessagesToSend()
                 .forEach(messageToSend -> sendMessageToUser(context, messageToSend));
+        processingResult
+                .getMessageIdsToDelete()
+                .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
 
     }
 

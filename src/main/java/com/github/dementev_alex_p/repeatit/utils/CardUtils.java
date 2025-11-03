@@ -30,10 +30,16 @@ public class CardUtils {
                 : String.format(CARD_VIEW_TEXT, card.getFrontSide(), card.getBackSide());
     }
 
-    public static String convertForTraining(final Card card) {
+
+    public static String forTraining(final Card card) {
         return card.getBackSide() == null
                 ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide())
-                : String.format(CARD_VIEW_WITH_SPOILER_TEXT, card.getFrontSide(), card.getBackSide());
+                : String.format(CARD_VIEW_TEXT, card.getFrontSide(), "?");
+    }
+    public static String forTrainingWithBackSideText(final Card card) {
+        return card.getBackSide() == null
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide())
+                : String.format(CARD_VIEW_TEXT, card.getFrontSide(), card.getBackSide());
     }
 
 }

@@ -9,6 +9,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.ShowBackSideButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
@@ -43,15 +44,12 @@ public class TrainingCommandHandler implements CommandHandler {
             🚀 - Сразу вспомнилось
             ⏳ - Вспомнилось с трудом
             ❓ - Не удалось вспомнить
+            
+            Прогресс: %d/%d (%d%%)
+            %s
             """;
     private static final String PROGRESS_ITEM_FULLED = "✅ ";
     private static final String PROGRESS_ITEM = "◻️";
-    private static final String PROGRESS_TEXT = """
-            Прогресс
-            —————————————————————
-            Пройдено: %d/%d (%d%%)
-            %s
-            """;
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
     private static final String NEXT_CARD_TEXT = """
             Карточка %d
@@ -86,6 +84,10 @@ public class TrainingCommandHandler implements CommandHandler {
             return finishTraining(training);
         }
 
+        if (isShowBackSideCommand(context)) {
+            return showBackSide(context, training);
+        }
+
         scorePreviousCardIfRequired(training, context);
 
         final Optional<TrainingCard> nextCard = extractNextCard(training);
@@ -95,6 +97,33 @@ public class TrainingCommandHandler implements CommandHandler {
         }
 
         return continueTraining(training, nextCard.get());
+    }
+
+    private ProcessingResult showBackSide(final MessageContext context, final Training training) {
+        final long cardId = Long.parseLong(context.commandParameters().get("card_id"));
+        final Card card = cardService.findCardById(cardId);
+        return new ProcessingResult(
+                Collections.emptyList(),
+                Collections.singletonList(
+                        new MessageToEdit(
+                                tgMessageService.findLastByUserId(training.getUserId()).getTgMessageId(),
+                                String.format(
+                                        NEXT_CARD_TEXT,
+                                        training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
+                                        CardUtils.forTrainingWithBackSideText(card)
+                                ),
+                                createAvailableScoreForCard(cardId),
+                                false
+                        )
+                ),
+                Collections.emptyList()
+        );
+    }
+
+    private boolean isShowBackSideCommand(final MessageContext context) {
+        return Optional.ofNullable(context.commandParameters().get("action"))
+                .filter(action -> action.equals("show_back_side"))
+                .isPresent();
     }
 
     private boolean isStartTrainingCommands(final MessageContext context) {
@@ -150,30 +179,28 @@ public class TrainingCommandHandler implements CommandHandler {
         final int currentOrderIndex = trainingCard.getOrderIndex() - 1;
         final int totalCardsCount = training.getTrainingCards().size();
         final int percentage = currentOrderIndex * 100 / totalCardsCount;
-        final TgMessage lastMessage = previousMessages.get(previousMessages.size() - 1);
         final MessageToEdit statisticMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
-                String.format(PROGRESS_TEXT, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
-                Collections.emptyList(),
+                String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
+                Collections.singletonList(new CommandLine(
+                        new CommandButton(
+                                CommandEnum.TRAINING,
+                                "Завершить тренировку",
+                                CommandButtonUtils.createActionParameter("end"))
+                )),
                 false
         );
 
-        final MessageToEdit lastMessageToEdit = new MessageToEdit(
-                previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
-                lastMessage.getMessageText(),
-                Collections.emptyList(),
-                false
-        );
-
-        final MessageToSend newCardMessage = new MessageToSend(
-                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardUtils.convertForTraining(card)),
+        final MessageToEdit newCardMessage = new MessageToEdit(
+                previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
+                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardUtils.forTraining(card)),
                 commandLines,
                 false
         );
         return new ProcessingResult(
-                Collections.singletonList(newCardMessage),
-                Collections.singletonList(statisticMessage),
-                Collections.singletonList(lastMessage.getTgMessageId())
+                Collections.emptyList(),
+                Arrays.asList(newCardMessage, statisticMessage),
+                Collections.emptyList()
         );
     }
 
@@ -238,21 +265,22 @@ public class TrainingCommandHandler implements CommandHandler {
                 .orElseThrow();
         final int totalCardCount = training.getTrainingCards().size();
         final MessageToSend startTrainingMessage = new MessageToSend(
-                String.format(START_TRAINING),
-                Collections.emptyList()
-        );
-        final MessageToSend statisticMessage = new MessageToSend(
-                String.format(PROGRESS_TEXT, 0, totalCardCount, 0, createProgressBar(0)),
-                Collections.emptyList()
+                String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)),
+                new CommandLine(
+                        new CommandButton(
+                                CommandEnum.TRAINING,
+                                "Завершить тренировку",
+                                CommandButtonUtils.createActionParameter("end"))
+                )
         );
         final MessageToSend firstCardMessage = new MessageToSend(
-                String.format(NEXT_CARD_TEXT, 1, CardUtils.convertForTraining(firstCard)),
+                String.format(NEXT_CARD_TEXT, 1, CardUtils.forTraining(firstCard)),
                 createAvailableScoreForCard(firstCardId)
         );
 
 
         return new ProcessingResult(
-                List.of(startTrainingMessage, statisticMessage, firstCardMessage),
+                List.of(startTrainingMessage, firstCardMessage),
                 Collections.emptyList(),
                 tgMessageService.findMessageIdsForDeletion(context.userId())
         );
@@ -279,13 +307,14 @@ public class TrainingCommandHandler implements CommandHandler {
                 ))
                 .toList();
         final List<CommandLine> commandLines = new ArrayList<>();
+        commandLines.add(new CommandLine(new ShowBackSideButton(cardId)));
         commandLines.add(new CommandLine(scores));
-        commandLines.add(new CommandLine(
-                new CommandButton(
-                        CommandEnum.TRAINING,
-                        "Завершить тренировку",
-                        CommandButtonUtils.createActionParameter("end"))
-        ));
+//        commandLines.add(new CommandLine(
+//                new CommandButton(
+//                        CommandEnum.TRAINING,
+//                        "Завершить тренировку",
+//                        CommandButtonUtils.createActionParameter("end"))
+//        ));
         return commandLines;
 
     }
