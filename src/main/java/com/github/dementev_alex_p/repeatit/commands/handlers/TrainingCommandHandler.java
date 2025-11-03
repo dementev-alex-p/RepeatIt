@@ -39,15 +39,15 @@ public class TrainingCommandHandler implements CommandHandler {
             <strong>Тренировка</strong>
             Постарайтесь вспомнить карточку и оцените результат:
             🚀 - Сразу вспомнилось
-            ⏳ - Вспомнилось с трудом
+            ⏳ - Вспомнилось с трудом◻️
             ❓ - Не удалось вспомнить
             
             Начнем!
             Прогресс: %d/%d (%d%%)
             %s
             """;
-    private static final String PROGRESS_ITEM_FULLED = "▓ ";
-    private static final String PROGRESS_ITEM = "░ ";
+    private static final String PROGRESS_ITEM_FULLED = "✅ ";
+    private static final String PROGRESS_ITEM = "◻️";
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
     private static final String NEXT_CARD_TEXT = """
             Карточка %d
