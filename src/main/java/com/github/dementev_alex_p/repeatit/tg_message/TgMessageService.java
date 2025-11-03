@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.tg_message;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,5 +46,13 @@ public class TgMessageService {
         final TgMessage messageToDelete = message.get();
         messageToDelete.setDeleted(true);
         tgMessageRepository.save(messageToDelete);
+    }
+
+    public void update(final int messageId, final String text, final CommandEnum command, final boolean answerExcepted) {
+        final TgMessage tgMessage = tgMessageRepository.findById((long) messageId).orElseThrow();
+        tgMessage.setCommand(command);
+        tgMessage.setMessageText(text);
+        tgMessage.setAnswerExcepted(answerExcepted);
+        tgMessageRepository.save(tgMessage);
     }
 }

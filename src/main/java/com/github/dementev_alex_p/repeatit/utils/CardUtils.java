@@ -8,6 +8,10 @@ public class CardUtils {
             📗 Обложка: %s
             📖 Содержание : %s
             """;
+    private static final String CARD_VIEW_WITH_SPOILER_TEXT = """
+            📗 Обложка: %s
+            📖 Содержание : <tg-spoiler>%s</tg-spoiler>
+            """;
     private static final String SUSPENSION_POINTS = "...";
 
     private static final String CARD_VIEW_WITHOUT_BACK_SIDE_TEXT = """
@@ -25,4 +29,11 @@ public class CardUtils {
                 ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide())
                 : String.format(CARD_VIEW_TEXT, card.getFrontSide(), card.getBackSide());
     }
+
+    public static String convertForTraining(final Card card) {
+        return card.getBackSide() == null
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide())
+                : String.format(CARD_VIEW_WITH_SPOILER_TEXT, card.getFrontSide(), card.getBackSide());
+    }
+
 }

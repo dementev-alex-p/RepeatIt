@@ -79,14 +79,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         processingResult
+                .getMessageIdsToDelete()
+                .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
+        processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
         processingResult
                 .getMessagesToSend()
                 .forEach(messageToSend -> sendMessageToUser(context, messageToSend));
-        processingResult
-                .getMessageIdsToDelete()
-                .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
 
     }
 
@@ -165,6 +165,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             Message message = execute(sendMessage);
             tgMessageService.save(convertMessage(message, context, messageToSend.isAnswerExcepted()));
             Thread.sleep(50);
+
         } catch (Exception e) {
             log.error("ERROR. Cause: {}", e.getMessage());
         }
@@ -184,7 +185,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         try {
             execute(editMessage);
-            tgMessageService.update(convertMessage(messageToEdit, context));
+            tgMessageService.update(editMessage.getMessageId(), editMessage.getText(), context.command(), messageToEdit.isAnswerExcepted());
             Thread.sleep(50);
         } catch (Exception e) {
             log.error("ERROR. Cause: {}", e.getMessage());
@@ -199,17 +200,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 context.command(),
                 sentMessage.getText(),
                 isAnswerExcepted
-        );
-    }
-
-    private TgMessage convertMessage(final MessageToEdit editMessage, final MessageContext context) {
-        return new TgMessage(
-                editMessage.getMessageId(),
-                context.userId(),
-                context.chatId(),
-                context.command(),
-                editMessage.getText(),
-                editMessage.isAnswerExcepted()
         );
     }
 

@@ -17,6 +17,7 @@ import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
+import com.github.dementev_alex_p.repeatit.utils.CardUtils;
 import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,21 +38,25 @@ public class TrainingCommandHandler implements CommandHandler {
     public final TgMessageService tgMessageService;
     private static final String START_TRAINING = """
             <strong>Тренировка</strong>
+            —————————————————————
             Постарайтесь вспомнить карточку и оцените результат:
             🚀 - Сразу вспомнилось
-            ⏳ - Вспомнилось с трудом◻️
+            ⏳ - Вспомнилось с трудом
             ❓ - Не удалось вспомнить
-            
-            Начнем!
-            Прогресс: %d/%d (%d%%)
-            %s
             """;
     private static final String PROGRESS_ITEM_FULLED = "✅ ";
     private static final String PROGRESS_ITEM = "◻️";
+    private static final String PROGRESS_TEXT = """
+            Прогресс
+            —————————————————————
+            Пройдено: %d/%d (%d%%)
+            %s
+            """;
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
     private static final String NEXT_CARD_TEXT = """
             Карточка %d
-            %s --> <tg-spoiler>%s</tg-spoiler>
+            —————————————————————
+            %s
             """;
     private static final String END_TRAINING = """
             <strong>Тренировка завершена!</strong>
@@ -133,9 +138,6 @@ public class TrainingCommandHandler implements CommandHandler {
     private ProcessingResult continueTraining(final Training training, final TrainingCard trainingCard) {
         final Card card = cardService.findCardById(trainingCard.getCardId());
 
-        final String continueTrainingText = String.format(
-                NEXT_CARD_TEXT, trainingCard.getOrderIndex(), card.getFrontSide(), card.getBackSide()
-        );
         final List<CommandLine> commandLines = new ArrayList<>(
                 createAvailableScoreForCard(trainingCard.getCardId())
         );
@@ -145,26 +147,33 @@ public class TrainingCommandHandler implements CommandHandler {
                 .sorted(Comparator.comparing(TgMessage::getCreatedAt))
                 .toList();
 
-        final MessageToEdit messageWithCard = new MessageToEdit(
-                previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
-                continueTrainingText,
-                commandLines,
-                false
-        );
         final int currentOrderIndex = trainingCard.getOrderIndex() - 1;
         final int totalCardsCount = training.getTrainingCards().size();
         final int percentage = currentOrderIndex * 100 / totalCardsCount;
-
-        final MessageToEdit messageWithStatistics = new MessageToEdit(
-                previousMessages.get(0).getTgMessageId(),
-                String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
+        final TgMessage lastMessage = previousMessages.get(previousMessages.size() - 1);
+        final MessageToEdit statisticMessage = new MessageToEdit(
+                previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
+                String.format(PROGRESS_TEXT, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
                 Collections.emptyList(),
                 false
         );
-        return new ProcessingResult(
+
+        final MessageToEdit lastMessageToEdit = new MessageToEdit(
+                previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
+                lastMessage.getMessageText(),
                 Collections.emptyList(),
-                List.of(messageWithStatistics, messageWithCard),
-                Collections.emptyList()
+                false
+        );
+
+        final MessageToSend newCardMessage = new MessageToSend(
+                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardUtils.convertForTraining(card)),
+                commandLines,
+                false
+        );
+        return new ProcessingResult(
+                Collections.singletonList(newCardMessage),
+                Collections.singletonList(statisticMessage),
+                Collections.singletonList(lastMessage.getTgMessageId())
         );
     }
 
@@ -229,17 +238,21 @@ public class TrainingCommandHandler implements CommandHandler {
                 .orElseThrow();
         final int totalCardCount = training.getTrainingCards().size();
         final MessageToSend startTrainingMessage = new MessageToSend(
-                String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)),
+                String.format(START_TRAINING),
                 Collections.emptyList()
         );
-
+        final MessageToSend statisticMessage = new MessageToSend(
+                String.format(PROGRESS_TEXT, 0, totalCardCount, 0, createProgressBar(0)),
+                Collections.emptyList()
+        );
         final MessageToSend firstCardMessage = new MessageToSend(
-                String.format(NEXT_CARD_TEXT,1, firstCard.getFrontSide(), firstCard.getBackSide()),
+                String.format(NEXT_CARD_TEXT, 1, CardUtils.convertForTraining(firstCard)),
                 createAvailableScoreForCard(firstCardId)
         );
 
+
         return new ProcessingResult(
-                List.of(startTrainingMessage, firstCardMessage),
+                List.of(startTrainingMessage, statisticMessage, firstCardMessage),
                 Collections.emptyList(),
                 tgMessageService.findMessageIdsForDeletion(context.userId())
         );
