@@ -93,7 +93,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void deleteMessage(final MessageContext context, final int messageId) {
         try {
             execute(new DeleteMessage(String.valueOf(context.chatId()), messageId));
-            tgMessageService.softDeleteMessageById(messageId);
+            tgMessageService.softDeleteMessageByIdIfRequired(messageId);
             Thread.sleep(50);
         } catch (final Exception e) {
             log.error(e.getMessage());

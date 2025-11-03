@@ -22,7 +22,7 @@ public class CardService {
         return cardRepository.save(new Card(userId, message, CardStatus.DRAFT));
     }
 
-    public Card complitCreationCard(Card card, String backSide) {
+    public Card complitCreationCard(final Card card, final String backSide) {
         card.setBackSide(backSide);
         card.setStatus(CardStatus.READY);
         return cardRepository.save(card);
@@ -38,10 +38,6 @@ public class CardService {
     public void updateStatus(final Card card, final CardStatus status) {
         card.setStatus(status);
         cardRepository.save(card);
-    }
-
-    public List<Card> findByUserId(long userId, int limit, int offset) {
-        return cardRepository.findByUserId(userId, limit, offset);
     }
 
     public void forkCards(final List<Card> cards, final long userId, final long collectionId) {

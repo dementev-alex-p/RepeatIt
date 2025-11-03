@@ -21,10 +21,11 @@ public class TgMessageService {
     }
 
     public List<TgMessage> findNotDeletedByUserIdAndCommand(final long userId, final CommandEnum command) {
-        return tgMessageRepository.findNotDeletedByUserIdAndCommand(userId, command);
+        final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
+        return tgMessageRepository.findNotDeletedByUserIdAndCommandAndCreatedBefore(userId, command, tgRestrictionDateTime);
     }
 
-    public List<Integer> findMessageIdsToDelete(final long userId) {
+    public List<Integer> findMessageIdsForDeletion(final long userId) {
         final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
         return tgMessageRepository.findNotDeletedAndCreatedBeforeByUserId(userId, tgRestrictionDateTime)
                 .stream()
@@ -36,10 +37,10 @@ public class TgMessageService {
         tgMessageRepository.save(messageToEdit);
     }
 
-    public void softDeleteMessageById(final int messageId) {
+    public void softDeleteMessageByIdIfRequired(final int messageId) {
         final Optional<TgMessage> message = tgMessageRepository.findById((long) messageId);
         if (message.isEmpty()) {
-            throw new RuntimeException("Не удалось найти карточку по id: " + messageId);
+            return;
         }
         final TgMessage messageToDelete = message.get();
         messageToDelete.setDeleted(true);

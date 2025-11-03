@@ -3,37 +3,53 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.SkipBackSideButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.*;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import com.github.dementev_alex_p.repeatit.utils.CardUtils;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class CreationCardCommandHandler implements CommandHandler {
 
     private final CardService cardService;
-    private static final String CARD_ID_PARAM_NAME = "card_id";
+    private final TgMessageService tgMessageService;
 
-    private static final String START_CREATION_TEXT = """
-                    <strong>Создание карточки</strong>
-                    Введите лицевую сторону карточки
-                    
-                    <code>💡 Для быстрого создания карточки просто введите и отправьте лицевую сторону карточки из любого пункта меню</code>
-                    """;
-    private static final String SUCCESS_CREATION_TEXT = "Карточка успешно создана!\n";
-    private static final String CARD_CREATION_TEXT = "Создание карточки\n";
+    private static final String TITLE_TEXT = """
+            <strong>Создание</strong>
+            —————————————————————
+            """;
+
+    private static final String CARD_ID_PARAM_NAME = "card_id";
+    private static final String QUICK_CREATION_HINT = """
+            <strong>Подсказка</strong>
+            —————————————————————
+            <code>💡 Для быстрого создания карточки просто введите и отправьте лицевую сторону карточки из любого пункта меню</code>
+            """;
+    private static final String CREATION_CARD_TEXT = """
+            %s%s
+            
+            Новая карточка:
+            %s
+            """;
+    private static final String FINISH_CREATION_TEXT = """
+            ✅ Карточка успешно создана!
+            
+            %s
+            """;
+    private static final String WRITE_FRONT_SIDE = "✍ <i>Введите <strong>обложку</strong>...</i>";
+    private static final String WRITE_BACK_SIDE = "✅ Обложка сохранена!\n\n✍ <i>Введите <strong>содержание</strong>...</i>";
+
 
     @Override
     public CommandEnum getCommand() {
@@ -42,48 +58,124 @@ public class CreationCardCommandHandler implements CommandHandler {
 
     @Override
     public ProcessingResult processCommand(final AbsSender sender, final MessageContext context) {
-
         if (isStartCreationCard(context)) {
-            return new ProcessingResult(new MessageToSend(START_CREATION_TEXT, new CommandLine(CommandEnum.START)));
+            return startCreationCard(context);
         }
-
         if (isSkipBackSideCommand(context)) {
-            final Card card = cardService.findCardById(Long.parseLong(context.commandParameters().get(CARD_ID_PARAM_NAME)));
-            return finishCreation(card, null);
+            return skipBackSide(context);
         }
-
         final String message = context.message().orElseThrow();
         final Optional<Card> creationCard = cardService.findDraftCardByUserId(context.userId());
         if (creationCard.isEmpty()) {
-            final Card card = cardService.createCard(context.userId(), message);
-            return new ProcessingResult(new MessageToSend(
-                    CARD_CREATION_TEXT + CardUtils.convertCardToTextForView(card),
-                    new CommandLine(new SkipBackSideButton(CommandEnum.CREATE_CARD, card.getId()))
+            return createCard(context, message);
+        } else {
+            return finishCreation(context, creationCard.get(), message);
+        }
+    }
+
+    private ProcessingResult skipBackSide(final MessageContext context) {
+        final long cardId = Long.parseLong(context.commandParameters().get(CARD_ID_PARAM_NAME));
+        final Card card = cardService.findCardById(cardId);
+        return finishCreation(context, card, null);
+    }
+
+    private ProcessingResult createCard(final MessageContext context, final String frontSideText) {
+        final Card card = cardService.createCard(context.userId(), frontSideText);
+        final TgMessage lastMessage = tgMessageService.findLastByUserId(context.userId());
+        final String startCreationText = String.format(
+                CREATION_CARD_TEXT,
+                TITLE_TEXT,
+                WRITE_BACK_SIDE,
+                CardUtils.convertForCreatingCard(frontSideText)
+        );
+        final List<CommandLine> commandLines = Collections.singletonList(
+                new CommandLine(new SkipBackSideButton(CommandEnum.CREATE_CARD, card.getId()))
+        );
+        final List<MessageToSend> messageToSends = new ArrayList<>();
+        final List<MessageToEdit> messageToEdit = new ArrayList<>();
+        if (lastMessage.getCommand() == getCommand()) {
+            messageToEdit.add(new MessageToEdit(
+                    lastMessage.getTgMessageId(),
+                    startCreationText,
+                    commandLines,
+                    true
             ));
         } else {
-            return finishCreation(creationCard.get(), message);
+            messageToSends.add(new MessageToSend(
+                    startCreationText,
+                    commandLines,
+                    true
+            ));
         }
+        final List<Integer> messageIdToDelete = context
+                .tgMessageId()
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
+
+        return new ProcessingResult(messageToSends, messageToEdit, messageIdToDelete);
+    }
+
+    private ProcessingResult startCreationCard(final MessageContext context) {
+        final List<Integer> messageIdsForDeletion = tgMessageService.findMessageIdsForDeletion(context.userId());
+        final MessageToSend quickCreationMessage = new MessageToSend(
+                QUICK_CREATION_HINT
+        );
+        final String startCreationText = String.format(
+                CREATION_CARD_TEXT,
+                TITLE_TEXT,
+                WRITE_FRONT_SIDE,
+                CardUtils.convertForCreatingCard(null)
+        );
+        final MessageToSend startCreationMessage = new MessageToSend(
+                startCreationText,
+                new CommandLine(new BackButton(CommandEnum.ADD_CARD))
+        );
+        return new ProcessingResult(
+                Arrays.asList(quickCreationMessage, startCreationMessage),
+                Collections.emptyList(),
+                messageIdsForDeletion
+        );
     }
 
     private boolean isStartCreationCard(final MessageContext context) {
         return Optional.ofNullable(context.commandParameters().get("action")).filter("start"::equals).isPresent();
     }
 
-    private ProcessingResult finishCreation(final Card card, final String message) {
-        final Card updatedCard = cardService.complitCreationCard(card, message);
+    private ProcessingResult finishCreation(final MessageContext context, final Card card, final String backSide) {
+        final Card updatedCard = cardService.complitCreationCard(card, backSide);
 
-        final List<CommandLine> commands = Stream.of(
-                CommandButtonUtils.createForEditCardAfterCreation(updatedCard.getId()),
-                CommandButtonUtils.createForCreationAnotherCard(),
-                new CommandButton(CommandEnum.CARDS),
-                new CommandButton(CommandEnum.START)
-        )
-                .map(CommandLine::new)
-                .toList();
-        return new ProcessingResult(new MessageToSend(
-                SUCCESS_CREATION_TEXT + CardUtils.convertCardToTextForView(updatedCard),
-                commands
-        ));
+
+        final List<CommandLine> commands = createCommandsForFinishMessage(card);
+
+        final List<Integer> messageIdToDelete = context
+                .tgMessageId()
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
+        final TgMessage lastMessage = tgMessageService.findLastByUserId(context.userId());
+        final MessageToEdit messageToEdit = new MessageToEdit(
+                lastMessage.getTgMessageId(),
+                TITLE_TEXT + String.format(FINISH_CREATION_TEXT, CardUtils.convertCardToTextForView(updatedCard)),
+                commands,
+                false
+        );
+
+        return new ProcessingResult(
+                Collections.emptyList(),
+                Collections.singletonList(messageToEdit),
+                messageIdToDelete
+        );
+    }
+
+    private List<CommandLine> createCommandsForFinishMessage(final Card card) {
+        final CommandLine firstLine = new CommandLine(
+                new EditCardButton(card.getId()),
+                new CreateAnotherCardButton()
+        );
+        return Arrays.asList(
+                firstLine,
+                new CommandLine(CommandEnum.CARDS),
+                new CommandLine(CommandEnum.START)
+        );
     }
 
     private boolean isSkipBackSideCommand(final MessageContext context) {

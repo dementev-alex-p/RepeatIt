@@ -206,7 +206,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return new ProcessingResult(
                 Collections.singletonList(messageToSend),
                 Collections.emptyList(),
-                tgMessageService.findMessageIdsToDelete(training.getUserId())
+                tgMessageService.findMessageIdsForDeletion(training.getUserId())
         );
     }
 
@@ -241,7 +241,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return new ProcessingResult(
                 List.of(startTrainingMessage, firstCardMessage),
                 Collections.emptyList(),
-                tgMessageService.findMessageIdsToDelete(context.userId())
+                tgMessageService.findMessageIdsForDeletion(context.userId())
         );
     }
 
