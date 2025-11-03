@@ -7,7 +7,7 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.buttons.SkipBackSideButton;
-import com.github.dementev_alex_p.repeatit.utils.CardUtils;
+import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class EditionCardCommandHandler implements CommandHandler {
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
         final List<MessageToSend> messagesToSend = List.of(new MessageToSend(
-                String.format(CARD_EDITION_TEXT, CardUtils.convertCardToTextForView(card)),
+                String.format(CARD_EDITION_TEXT, CardTextConverter.convertCardToTextForView(card)),
                 createCommandLines(card)
         ));
         return new ProcessingResult(messagesToSend, Collections.emptyList(), messageIdsForDeletions);
@@ -89,7 +89,7 @@ public class EditionCardCommandHandler implements CommandHandler {
     }
     private ProcessingResult createSuccessUpdateResult(final Card card) {
         return new ProcessingResult(new MessageToSend(
-                String.format(SUCCESS_EDITION_TEXT, CardUtils.convertCardToTextForView(card)),
+                String.format(SUCCESS_EDITION_TEXT, CardTextConverter.convertCardToTextForView(card)),
                 createCommandLines(card)
         ));
     }

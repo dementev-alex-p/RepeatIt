@@ -32,6 +32,10 @@ public class MessageContextService {
                 ? update.getCallbackQuery().getFrom().getId()
                 : update.getMessage().getFrom().getId();
 
+        final String callbackId = isCallback
+                ? update.getCallbackQuery().getId()
+                : null;
+
         final Long chatId = isCallback
                 ? update.getCallbackQuery().getMessage().getChatId()
                 : update.getMessage().getChatId();
@@ -45,7 +49,17 @@ public class MessageContextService {
         final Optional<String> message = Optional.ofNullable(update.getMessage()).map(Message::getText);
         final Optional<Integer> messageId = Optional.ofNullable(update.getMessage()).map(Message::getMessageId);
         final Command command = determinateCommand(data, message, userId);
-        return new MessageContext(userId, userName, chatId, messageId, data, message, command.commandEnum, command.parameters);
+        return new MessageContext(
+                userId,
+                userName,
+                chatId,
+                messageId,
+                data,
+                message,
+                command.commandEnum,
+                command.parameters,
+                callbackId
+                );
     }
 
     private Command determinateCommand(

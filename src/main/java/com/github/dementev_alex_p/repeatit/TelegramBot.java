@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -35,6 +36,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -78,6 +80,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
+        Optional
+                .ofNullable(context.callBackId())
+                .ifPresent(callbackId -> answerToCallback(context, callbackId));
         processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
@@ -88,6 +93,18 @@ public class TelegramBot extends TelegramLongPollingBot {
                 .getMessageIdsToDelete()
                 .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
 
+    }
+
+    private void answerToCallback(final MessageContext context, final String callbackId) {
+        AnswerCallbackQuery answer = AnswerCallbackQuery
+                .builder()
+                .callbackQueryId(callbackId)
+                .build();
+        try {
+            execute(answer);
+        } catch (final Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     private void deleteMessage(final MessageContext context, final int messageId) {

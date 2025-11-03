@@ -8,7 +8,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.buttons.*;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
-import com.github.dementev_alex_p.repeatit.utils.CardUtils;
+import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -86,7 +86,7 @@ public class CreationCardCommandHandler implements CommandHandler {
                 CREATION_CARD_TEXT,
                 TITLE_TEXT,
                 WRITE_BACK_SIDE,
-                CardUtils.convertForCreatingCard(frontSideText)
+                CardTextConverter.convertForCreatingCard(frontSideText)
         );
         final List<CommandLine> commandLines = Collections.singletonList(
                 new CommandLine(new SkipBackSideButton(CommandEnum.CREATE_CARD, card.getId()))
@@ -124,7 +124,7 @@ public class CreationCardCommandHandler implements CommandHandler {
                 CREATION_CARD_TEXT,
                 TITLE_TEXT,
                 WRITE_FRONT_SIDE,
-                CardUtils.convertForCreatingCard(null)
+                CardTextConverter.convertForCreatingCard(null)
         );
         final MessageToSend startCreationMessage = new MessageToSend(
                 startCreationText,
@@ -154,7 +154,7 @@ public class CreationCardCommandHandler implements CommandHandler {
         final TgMessage lastMessage = tgMessageService.findLastByUserId(context.userId());
         final MessageToEdit messageToEdit = new MessageToEdit(
                 lastMessage.getTgMessageId(),
-                TITLE_TEXT + String.format(FINISH_CREATION_TEXT, CardUtils.convertCardToTextForView(updatedCard)),
+                TITLE_TEXT + String.format(FINISH_CREATION_TEXT, CardTextConverter.convertCardToTextForView(updatedCard)),
                 commands,
                 false
         );

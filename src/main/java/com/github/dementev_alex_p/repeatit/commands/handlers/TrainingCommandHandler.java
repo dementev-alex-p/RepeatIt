@@ -9,6 +9,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.HideBackSideButton;
 import com.github.dementev_alex_p.repeatit.commands.result.buttons.ShowBackSideButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
@@ -18,7 +19,7 @@ import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
-import com.github.dementev_alex_p.repeatit.utils.CardUtils;
+import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -85,7 +86,10 @@ public class TrainingCommandHandler implements CommandHandler {
         }
 
         if (isShowBackSideCommand(context)) {
-            return showBackSide(context, training);
+            return showBackSide(context, training, true);
+        }
+        if (isHideBackSideCommand(context)) {
+            return showBackSide(context, training, false);
         }
 
         scorePreviousCardIfRequired(training, context);
@@ -99,7 +103,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return continueTraining(training, nextCard.get());
     }
 
-    private ProcessingResult showBackSide(final MessageContext context, final Training training) {
+    private ProcessingResult showBackSide(final MessageContext context, final Training training, final boolean isShowBackSide) {
         final long cardId = Long.parseLong(context.commandParameters().get("card_id"));
         final Card card = cardService.findCardById(cardId);
         return new ProcessingResult(
@@ -110,14 +114,20 @@ public class TrainingCommandHandler implements CommandHandler {
                                 String.format(
                                         NEXT_CARD_TEXT,
                                         training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
-                                        CardUtils.forTrainingWithBackSideText(card)
+                                        CardTextConverter.forTraining(card, isShowBackSide)
                                 ),
-                                createAvailableScoreForCard(cardId),
+                                createAvailableScoreForCard(cardId, isShowBackSide),
                                 false
                         )
                 ),
                 Collections.emptyList()
         );
+    }
+
+    private boolean isHideBackSideCommand(final MessageContext context) {
+        return Optional.ofNullable(context.commandParameters().get("action"))
+                .filter(action -> action.equals("hide_back_side"))
+                .isPresent();
     }
 
     private boolean isShowBackSideCommand(final MessageContext context) {
@@ -168,7 +178,7 @@ public class TrainingCommandHandler implements CommandHandler {
         final Card card = cardService.findCardById(trainingCard.getCardId());
 
         final List<CommandLine> commandLines = new ArrayList<>(
-                createAvailableScoreForCard(trainingCard.getCardId())
+                createAvailableScoreForCard(trainingCard.getCardId(), false)
         );
         final List<TgMessage> previousMessages = tgMessageService
                 .findNotDeletedByUserIdAndCommand(training.getUserId(), getCommand())
@@ -193,7 +203,7 @@ public class TrainingCommandHandler implements CommandHandler {
 
         final MessageToEdit newCardMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
-                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardUtils.forTraining(card)),
+                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardTextConverter.forTraining(card, false)),
                 commandLines,
                 false
         );
@@ -274,8 +284,8 @@ public class TrainingCommandHandler implements CommandHandler {
                 )
         );
         final MessageToSend firstCardMessage = new MessageToSend(
-                String.format(NEXT_CARD_TEXT, 1, CardUtils.forTraining(firstCard)),
-                createAvailableScoreForCard(firstCardId)
+                String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)),
+                createAvailableScoreForCard(firstCardId, false)
         );
 
 
@@ -295,7 +305,7 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
 
-    private List<CommandLine> createAvailableScoreForCard(final long cardId) {
+    private List<CommandLine> createAvailableScoreForCard(final long cardId, final boolean isShowBackSide) {
         final List<CommandButton> scores = Stream.of(RecallScoreEnum.PERFECT_RECALL, RecallScoreEnum.DIFFICULT_RECALL, RecallScoreEnum.FAIL_RECALL)
                 .map(score -> new CommandButton(
                         CommandEnum.TRAINING,
@@ -307,7 +317,11 @@ public class TrainingCommandHandler implements CommandHandler {
                 ))
                 .toList();
         final List<CommandLine> commandLines = new ArrayList<>();
-        commandLines.add(new CommandLine(new ShowBackSideButton(cardId)));
+        if (isShowBackSide) {
+            commandLines.add(new CommandLine(new HideBackSideButton(cardId)));
+        } else {
+            commandLines.add(new CommandLine(new ShowBackSideButton(cardId)));
+        }
         commandLines.add(new CommandLine(scores));
 //        commandLines.add(new CommandLine(
 //                new CommandButton(
