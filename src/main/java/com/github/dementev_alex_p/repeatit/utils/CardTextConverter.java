@@ -10,6 +10,7 @@ public class CardTextConverter {
             """;
 
     private static final String SUSPENSION_POINTS = "...";
+    private static final String HIDE_BACK_SIDE = "❔❔❔";
 
     private static final String CARD_VIEW_WITHOUT_BACK_SIDE_TEXT = """
             📘 Обложка: %s
@@ -29,9 +30,9 @@ public class CardTextConverter {
 
 
     public static String forTraining(final Card card, final boolean isShowBackSide) {
-        return isShowBackSide && card.getBackSide() != null
-                ? String.format(CARD_VIEW_TEXT, card.getFrontSide(), card.getBackSide())
-                : String.format(CARD_VIEW_TEXT, card.getFrontSide(), "?");
+        return card.getBackSide() != null
+                ? String.format(CARD_VIEW_TEXT, card.getFrontSide(), isShowBackSide ? card.getBackSide() : HIDE_BACK_SIDE)
+                : String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide());
     }
 
 }

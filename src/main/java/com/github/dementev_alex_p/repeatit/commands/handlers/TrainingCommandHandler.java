@@ -3,14 +3,11 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.HideBackSideButton;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.ShowBackSideButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
@@ -20,7 +17,6 @@ import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnu
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -49,7 +45,7 @@ public class TrainingCommandHandler implements CommandHandler {
             Прогресс: %d/%d (%d%%)
             %s
             """;
-    private static final String PROGRESS_ITEM_FULLED = "✅ ";
+    private static final String PROGRESS_ITEM_FILLED = "✅ ";
     private static final String PROGRESS_ITEM = "◻️";
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
     private static final String NEXT_CARD_TEXT = """
@@ -59,11 +55,12 @@ public class TrainingCommandHandler implements CommandHandler {
             """;
     private static final String END_TRAINING = """
             <strong>Тренировка завершена!</strong>
-            Статистика:
-             - всего повторили: %d/%d
-             - вспомнили: %d
-             - вспомнили с трудом: %d
-             - не удалось вспомнить: %d
+            —————————————————————
+            Пройдено: %d/%d (%d%%)
+            Из них:
+            🚀 вспомнили сразу: %d
+            ⏳ вспомнили с трудом: %d
+            ❓ не удалось вспомнить: %d
             """;
 
     @Override
@@ -86,11 +83,11 @@ public class TrainingCommandHandler implements CommandHandler {
         }
 
         if (isShowBackSideCommand(context)) {
-            return showBackSide(context, training, true);
+            return showBackSide(context, training);
         }
-        if (isHideBackSideCommand(context)) {
-            return showBackSide(context, training, false);
-        }
+//        if (isHideBackSideCommand(context)) {
+//            return showBackSide(context, training, false);
+//        }
 
         scorePreviousCardIfRequired(training, context);
 
@@ -103,9 +100,15 @@ public class TrainingCommandHandler implements CommandHandler {
         return continueTraining(training, nextCard.get());
     }
 
-    private ProcessingResult showBackSide(final MessageContext context, final Training training, final boolean isShowBackSide) {
+    private ProcessingResult showBackSide(final MessageContext context, final Training training) {
         final long cardId = Long.parseLong(context.commandParameters().get("card_id"));
         final Card card = cardService.findCardById(cardId);
+
+        final List<CommandLine> commandLines = Arrays.asList(
+                new CommandLine(new EditCardButton(cardId)),
+                createScoreCommandLine(cardId)
+        );
+
         return new ProcessingResult(
                 Collections.emptyList(),
                 Collections.singletonList(
@@ -114,9 +117,9 @@ public class TrainingCommandHandler implements CommandHandler {
                                 String.format(
                                         NEXT_CARD_TEXT,
                                         training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
-                                        CardTextConverter.forTraining(card, isShowBackSide)
+                                        CardTextConverter.forTraining(card, true)
                                 ),
-                                createAvailableScoreForCard(cardId, isShowBackSide),
+                                commandLines,
                                 false
                         )
                 ),
@@ -177,9 +180,6 @@ public class TrainingCommandHandler implements CommandHandler {
     private ProcessingResult continueTraining(final Training training, final TrainingCard trainingCard) {
         final Card card = cardService.findCardById(trainingCard.getCardId());
 
-        final List<CommandLine> commandLines = new ArrayList<>(
-                createAvailableScoreForCard(trainingCard.getCardId(), false)
-        );
         final List<TgMessage> previousMessages = tgMessageService
                 .findNotDeletedByUserIdAndCommand(training.getUserId(), getCommand())
                 .stream()
@@ -192,19 +192,14 @@ public class TrainingCommandHandler implements CommandHandler {
         final MessageToEdit statisticMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
                 String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
-                Collections.singletonList(new CommandLine(
-                        new CommandButton(
-                                CommandEnum.TRAINING,
-                                "Завершить тренировку",
-                                CommandButtonUtils.createActionParameter("end"))
-                )),
+                Collections.singletonList(new CommandLine(new FinishTrainingButton())),
                 false
         );
 
         final MessageToEdit newCardMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
                 String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardTextConverter.forTraining(card, false)),
-                commandLines,
+                createCommandLineForCard(card),
                 false
         );
         return new ProcessingResult(
@@ -217,8 +212,8 @@ public class TrainingCommandHandler implements CommandHandler {
     private String createProgressBar(final int progressPercentage) {
         final StringBuilder progress = new StringBuilder();
         for (int i = 1; i <= 10; i++) {
-            if (i <= progressPercentage/10) {
-                progress.append(PROGRESS_ITEM_FULLED);
+            if (i <= progressPercentage / 10) {
+                progress.append(PROGRESS_ITEM_FILLED);
             } else {
                 progress.append(PROGRESS_ITEM);
             }
@@ -241,6 +236,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 END_TRAINING,
                 scoredCards.size(),
                 training.getTrainingCards().size(),
+                scoredCards.size() * 100 / training.getTrainingCards().size(),
                 statistic.getOrDefault(RecallScoreEnum.PERFECT_RECALL, 0L),
                 statistic.getOrDefault(RecallScoreEnum.DIFFICULT_RECALL, 0L),
                 statistic.getOrDefault(RecallScoreEnum.FAIL_RECALL, 0L)
@@ -276,16 +272,11 @@ public class TrainingCommandHandler implements CommandHandler {
         final int totalCardCount = training.getTrainingCards().size();
         final MessageToSend startTrainingMessage = new MessageToSend(
                 String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)),
-                new CommandLine(
-                        new CommandButton(
-                                CommandEnum.TRAINING,
-                                "Завершить тренировку",
-                                CommandButtonUtils.createActionParameter("end"))
-                )
+                new CommandLine(new FinishTrainingButton())
         );
         final MessageToSend firstCardMessage = new MessageToSend(
                 String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)),
-                createAvailableScoreForCard(firstCardId, false)
+                createCommandLineForCard(firstCard)
         );
 
 
@@ -294,6 +285,17 @@ public class TrainingCommandHandler implements CommandHandler {
                 Collections.emptyList(),
                 tgMessageService.findMessageIdsForDeletion(context.userId())
         );
+    }
+
+    private List<CommandLine> createCommandLineForCard(final Card card) {
+        final List<CommandLine> commandLines = new ArrayList<>();
+        if (card.getBackSide() != null) {
+            commandLines.add(new CommandLine(new ShowBackSideButton(card.getId())));
+        } else {
+            commandLines.add(new CommandLine(new EditCardButton(card.getId())));
+        }
+        commandLines.add(createScoreCommandLine(card.getId()));
+        return commandLines;
     }
 
     private List<Card> findCardsForTraining(final long userId) {
@@ -305,32 +307,15 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
 
-    private List<CommandLine> createAvailableScoreForCard(final long cardId, final boolean isShowBackSide) {
-        final List<CommandButton> scores = Stream.of(RecallScoreEnum.PERFECT_RECALL, RecallScoreEnum.DIFFICULT_RECALL, RecallScoreEnum.FAIL_RECALL)
-                .map(score -> new CommandButton(
-                        CommandEnum.TRAINING,
-                        score.getText(),
-                        Arrays.asList(
-                                new CommandParameter("score", score.name()),
-                                CommandButtonUtils.createCardIdParameter(cardId)
-                        )
-                ))
-                .toList();
-        final List<CommandLine> commandLines = new ArrayList<>();
-        if (isShowBackSide) {
-            commandLines.add(new CommandLine(new HideBackSideButton(cardId)));
-        } else {
-            commandLines.add(new CommandLine(new ShowBackSideButton(cardId)));
-        }
-        commandLines.add(new CommandLine(scores));
-//        commandLines.add(new CommandLine(
-//                new CommandButton(
-//                        CommandEnum.TRAINING,
-//                        "Завершить тренировку",
-//                        CommandButtonUtils.createActionParameter("end"))
-//        ));
-        return commandLines;
-
+    private CommandLine createScoreCommandLine(final long cardId) {
+        return new CommandLine(Stream.of(
+                        RecallScoreEnum.PERFECT_RECALL,
+                        RecallScoreEnum.DIFFICULT_RECALL,
+                        RecallScoreEnum.FAIL_RECALL
+                )
+                .map(score -> (CommandButton) new ScoreButton(score, cardId))
+                .toList()
+        );
     }
 
     private RecallScoreEnum extractRecallScore(MessageContext context) {
