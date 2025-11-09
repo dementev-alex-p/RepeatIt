@@ -20,9 +20,13 @@ public class CardCollectionService {
     public List<CardCollection> findAvailableForUser(long userId) {
         return cardCollectionRepository.findAvailableForUser(userId);
     }
-    
-    public CardCollection findByAuthorId(final Long authorId) {
-        return cardCollectionRepository.findByAuthorId(authorId);
+
+    public List<CardCollection> findByAuthorId(final Long authorId, final int limit, final int offset) {
+        return cardCollectionRepository.findByAuthorId(authorId, limit, offset);
+    }
+
+    public int findCountByAuthorId(final Long authorId) {
+        return cardCollectionRepository.findCountByAuthorId(authorId);
     }
 
     public Optional<CardCollection> findById(long chosenCollectionId) {
@@ -34,7 +38,7 @@ public class CardCollectionService {
         final User author = userService.getReferenceById(userId);
 
         final CardCollection newCardCollection = cardCollectionRepository.save(
-                new CardCollection(author, parentCollection.getName(), parentCollection.getId(), false)
+                new CardCollection(author.getId(), parentCollection.getName(), parentCollection.getId(), false)
         );
 
         cardService.forkCards(parentCollection.getCards(), userId, newCardCollection.getId());

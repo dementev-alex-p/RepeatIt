@@ -45,6 +45,7 @@ public class StartCommandHandler implements CommandHandler {
                     String.format(GREETING, context.userName()),
                     new CommandLine(CommandEnum.TRAINING),
                     new CommandLine(CommandEnum.CARDS),
+                    new CommandLine(CommandEnum.COLLECTIONS),
                     new CommandLine(CommandEnum.SETTINGS)
             ));
         }
@@ -54,6 +55,7 @@ public class StartCommandHandler implements CommandHandler {
                 String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
                 new CommandLine(CommandEnum.TRAINING),
                 new CommandLine(CommandEnum.CARDS),
+                new CommandLine(CommandEnum.COLLECTIONS),
                 new CommandLine(CommandEnum.SETTINGS)
         ));
     }

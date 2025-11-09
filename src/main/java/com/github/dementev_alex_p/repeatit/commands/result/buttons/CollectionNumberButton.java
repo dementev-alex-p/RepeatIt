@@ -1,0 +1,15 @@
+package com.github.dementev_alex_p.repeatit.commands.result.buttons;
+
+import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
+
+public class CollectionNumberButton extends CommandButton{
+
+    public CollectionNumberButton(final int number, final long collectionId) {
+        super(
+                CommandEnum.VIEW_COLLECTION,
+                String.valueOf(number),
+                CommandButtonUtils.createCollectionIdParameter(collectionId)
+        );
+    }
+}

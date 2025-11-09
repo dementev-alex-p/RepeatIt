@@ -19,7 +19,10 @@ public enum CommandEnum {
     IMPORT_CARDS("import_cards", "📥 Импорт", null),
     EDIT_CARD("edit_card", "✍ Изменить ", new CommandParameter("action", EditionCardCommandHandler.START_EDITION_ACTION)),
     ADD_CARD_TO_COLLECTION("add_card_to_collection", "Добавить в коллекцию", null),
-    COLLECTIONS("collections", "Коллекции карточек", null),
+    COLLECTIONS("collections", "Коллекции", CommandButtonUtils.createPageParameter(1)),
+    CREATE_COLLECTION("create_collection", "➕ Добавить", null),
+    PUBLIC_COLLECTIONS("public_collections", "Публичные коллекции", null),
+    VIEW_COLLECTION("view_collection", "Просмотр коллекции", null),
     SETTINGS("settings", "Настройки", null),
     DELETE_CARD("delete_card", "Удалить карточку", null);
 

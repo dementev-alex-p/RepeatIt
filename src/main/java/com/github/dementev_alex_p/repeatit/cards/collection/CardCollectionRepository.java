@@ -9,14 +9,22 @@ import java.util.List;
 @Repository
 public interface CardCollectionRepository extends JpaRepository<CardCollection, Long> {
 
-    CardCollection findByAuthorId(Long authorId);
+    @Query("""
+    SELECT c FROM CardCollection c WHERE c.authorId = :authorId ORDER BY c.updatedAt LIMIT :limit OFFSET :offset
+    """)
+    List<CardCollection> findByAuthorId(final long authorId, final int limit, final int offset);
+
+    @Query("""
+    SELECT COUNT(c) FROM CardCollection c WHERE c.authorId = :authorId
+    """)
+    int findCountByAuthorId(long authorId);
 
     @Query(
             """
                 SELECT cc FROM CardCollection cc
                 WHERE cc.isPublic = true
-                AND cc.author.id != :userId
-                AND cc.id NOT IN (SELECT cc1.parentCollectionId FROM CardCollection cc1 WHERE cc1.author.id = :userId)
+                AND cc.authorId != :userId
+                AND cc.id NOT IN (SELECT cc1.parentCollectionId FROM CardCollection cc1 WHERE cc1.authorId = :userId)
             """
     )
     List<CardCollection> findAvailableForUser(long userId);

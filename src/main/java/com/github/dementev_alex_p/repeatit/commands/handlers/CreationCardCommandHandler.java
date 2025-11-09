@@ -12,6 +12,7 @@ import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -30,7 +31,6 @@ public class CreationCardCommandHandler implements CommandHandler {
             —————————————————————
             """;
 
-    private static final String CARD_ID_PARAM_NAME = "card_id";
     private static final String QUICK_CREATION_HINT = """
             <strong>Подсказка</strong>
             —————————————————————
@@ -74,14 +74,14 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult skipBackSide(final MessageContext context) {
-        final long cardId = Long.parseLong(context.commandParameters().get(CARD_ID_PARAM_NAME));
+        final long cardId = Long.parseLong(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT));
         final Card card = cardService.findCardById(cardId);
         return finishCreation(context, card, null);
     }
 
     private ProcessingResult createCard(final MessageContext context, final String frontSideText) {
         final Card card = cardService.createCard(context.userId(), frontSideText);
-        final TgMessage lastMessage = tgMessageService.findLastByUserId(context.userId());
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(context.userId());
         final String startCreationText = String.format(
                 CREATION_CARD_TEXT,
                 TITLE_TEXT,
@@ -93,9 +93,9 @@ public class CreationCardCommandHandler implements CommandHandler {
         );
         final List<MessageToSend> messageToSends = new ArrayList<>();
         final List<MessageToEdit> messageToEdit = new ArrayList<>();
-        if (lastMessage.getCommand() == getCommand()) {
+        if (lastMessage.filter(m -> m.getCommand() == getCommand()).isPresent()) {
             messageToEdit.add(new MessageToEdit(
-                    lastMessage.getTgMessageId(),
+                    lastMessage.get().getTgMessageId(),
                     startCreationText,
                     commandLines,
                     true
@@ -151,17 +151,17 @@ public class CreationCardCommandHandler implements CommandHandler {
                 .tgMessageId()
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
-        final TgMessage lastMessage = tgMessageService.findLastByUserId(context.userId());
-        final MessageToEdit messageToEdit = new MessageToEdit(
-                lastMessage.getTgMessageId(),
+        final MessageToSend message = new MessageToSend(
                 TITLE_TEXT + String.format(FINISH_CREATION_TEXT, CardTextConverter.convertCardToTextForView(updatedCard)),
                 commands,
                 false
         );
-
-        return new ProcessingResult(
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(context.userId());
+        return lastMessage.isEmpty()
+                ? new ProcessingResult(message)
+                : new ProcessingResult(
                 Collections.emptyList(),
-                Collections.singletonList(messageToEdit),
+                Collections.singletonList(new MessageToEdit(lastMessage.get().getTgMessageId(), message)),
                 messageIdToDelete
         );
     }

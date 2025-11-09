@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -16,10 +17,14 @@ import java.util.List;
 @Table(name = "card_collection")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CardCollection {
     @Id
     @Column(name = "card_collection_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    @ToString.Exclude
     private long id;
 
     @Column(name = "name")
@@ -30,9 +35,8 @@ public class CardCollection {
     @Column(name = "is_public")
     private boolean isPublic;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
-    private User author;
+    @Column(name = "author_id")
+    private long authorId;
 
     @OneToMany(mappedBy = "cardCollectionId")
     private List<Card> cards;
@@ -41,11 +45,19 @@ public class CardCollection {
     @Column(name = "parent_collection_id")
     private Long parentCollectionId;
 
-    public CardCollection(final User user, final String name, final long parentCollectionId, final boolean isPublic) {
-        this.author = user;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public CardCollection(final long userId, final String name, final long parentCollectionId, final boolean isPublic) {
+        this.authorId = userId;
         this.name = name;
         this.parentCollectionId = parentCollectionId;
         this.isPublic = isPublic;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
 

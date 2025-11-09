@@ -34,7 +34,6 @@ public class EditionCardCommandHandler implements CommandHandler {
 
     private final CardService cardService;
 
-    private static final String CARD_ID = "card_id";
 
     @Override
     public CommandEnum getCommand() {
@@ -51,7 +50,7 @@ public class EditionCardCommandHandler implements CommandHandler {
             return updateCardContent(null, context.userId());
         }
 
-        final long cardId = Long.parseLong(context.commandParameters().get(CARD_ID));
+        final long cardId = Long.parseLong(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT));
         final Card card = cardService.findCardById(cardId);
         if (isAction(context, START_EDITION_ACTION)) {
             return processStartEdition(card, context);

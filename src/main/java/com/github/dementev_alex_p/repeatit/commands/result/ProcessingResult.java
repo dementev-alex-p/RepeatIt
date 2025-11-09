@@ -19,4 +19,10 @@ public class ProcessingResult {
         this.messagesToEdit = Collections.emptyList();
     }
 
+    public ProcessingResult(final MessageToEdit messageToEdit) {
+        this.messageIdsToDelete = Collections.emptyList();
+        this.messagesToSend = Collections.emptyList();
+        this.messagesToEdit = Collections.singletonList(messageToEdit);
+    }
+
 }

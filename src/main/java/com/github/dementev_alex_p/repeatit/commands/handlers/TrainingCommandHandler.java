@@ -17,6 +17,7 @@ import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnu
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -101,30 +102,26 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult showBackSide(final MessageContext context, final Training training) {
-        final long cardId = Long.parseLong(context.commandParameters().get("card_id"));
+        final long cardId = Long.parseLong(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT));
         final Card card = cardService.findCardById(cardId);
 
         final List<CommandLine> commandLines = Arrays.asList(
                 new CommandLine(new EditCardButton(cardId)),
                 createScoreCommandLine(cardId)
         );
-
-        return new ProcessingResult(
-                Collections.emptyList(),
-                Collections.singletonList(
-                        new MessageToEdit(
-                                tgMessageService.findLastByUserId(training.getUserId()).getTgMessageId(),
-                                String.format(
-                                        NEXT_CARD_TEXT,
-                                        training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
-                                        CardTextConverter.forTraining(card, true)
-                                ),
-                                commandLines,
-                                false
-                        )
+        final MessageToSend messageToSend = new MessageToSend(
+                String.format(
+                        NEXT_CARD_TEXT,
+                        training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
+                        CardTextConverter.forTraining(card, true)
                 ),
-                Collections.emptyList()
+                commandLines,
+                false
         );
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(training.getUserId());
+        return lastMessage.isEmpty()
+                ? new ProcessingResult(messageToSend)
+                : new ProcessingResult(new MessageToEdit(lastMessage.get().getTgMessageId(), messageToSend));
     }
 
     private boolean isHideBackSideCommand(final MessageContext context) {
@@ -152,7 +149,7 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private void scorePreviousCardIfRequired(Training training, MessageContext context) {
-        Optional.ofNullable(context.commandParameters().get("card_id"))
+        Optional.ofNullable(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT))
                 .map(Long::parseLong)
                 .map(cardId -> extractTrainingCardById(training, cardId))
                 .ifPresent(previousCard ->

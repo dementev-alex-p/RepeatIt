@@ -6,6 +6,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -25,7 +26,7 @@ public class DeletionCardCommandHandler implements CommandHandler {
 
     @Override
     public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
-        long cardId = Long.parseLong(context.commandParameters().get("card_id"));
+        long cardId = Long.parseLong(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT));
         cardService.softDeleteCardById(cardId);
         return new ProcessingResult(new MessageToSend(
                 DELETED_TEXT, new CommandLine(CommandEnum.START)

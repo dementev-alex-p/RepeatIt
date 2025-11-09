@@ -1,7 +1,6 @@
 package com.github.dementev_alex_p.repeatit.tg_message;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +16,9 @@ public class TgMessageService {
     public void save(final TgMessage tgMessage) {
         tgMessageRepository.save(tgMessage);
     }
-    public TgMessage findLastByUserId(final long userId) {
-        return tgMessageRepository.findLastByUserId(userId).orElseThrow();
+    public Optional<TgMessage> findLastAvailableByUserId(final long userId) {
+        final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
+        return tgMessageRepository.findLastByUserId(userId, tgRestrictionDateTime);
     }
 
     public List<TgMessage> findNotDeletedByUserIdAndCommand(final long userId, final CommandEnum command) {

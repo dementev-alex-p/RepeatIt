@@ -96,9 +96,9 @@ public class MessageContextService {
                         throw new IllegalArgumentException("Команда не поддерживается!");
                 }
             }
-            final TgMessage lastMessage = tgMessageService.findLastByUserId(userId);
-            if (lastMessage.isAnswerExcepted()) {
-                return new Command(lastMessage.getCommand(), new HashMap<>());
+            final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(userId);
+            if (lastMessage.filter(TgMessage::isAnswerExcepted).isPresent()) {
+                return new Command(lastMessage.get().getCommand(), new HashMap<>());
             }
             return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
         }

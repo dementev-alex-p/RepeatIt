@@ -12,4 +12,8 @@ public class MessageToEdit extends MessageToSend {
         super(text, availableCommands, isAnswerExcepted);
         this.messageId = messageId;
     }
+
+    public MessageToEdit(final int tgMessageId, final MessageToSend message) {
+        this(tgMessageId, message.getText(), message.getAvailableCommands(), message.isAnswerExcepted());
+    }
 }
