@@ -2,39 +2,32 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
-public class DeletionCardCommandHandler implements CommandHandler {
+public class DeletionBackSideHandler implements CommandHandler {
 
 
-    private static final String DELETED_TEXT = "Карточка успешно удалена!";
     private final CardService cardService;
+    private final SingleCardCommandHandler singleCardCommandHandler;
 
     @Override
     public CommandEnum getCommand() {
-        return CommandEnum.DELETE_CARD;
+        return CommandEnum.DELETE_CARD_BACK_SIDE;
     }
 
     @Override
     public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
-        long cardId = CommandParameterUtils.extractCardId(context);
-        cardService.softDeleteCardById(cardId);
-        return new ProcessingResult(RIResponse
-                .builder()
-                .text(DELETED_TEXT)
-                .availableCommands(List.of(new CommandLine(CommandEnum.START)))
-                .build()
-        );
+        final long cardId = CommandParameterUtils.extractCardId(context);
+        cardService.updateBackSideByCardId(cardId, null);
+        context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
+        return singleCardCommandHandler.processCommand(sender, context);
+
     }
 }

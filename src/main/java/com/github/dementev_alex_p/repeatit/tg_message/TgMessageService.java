@@ -16,9 +16,14 @@ public class TgMessageService {
     public void save(final TgMessage tgMessage) {
         tgMessageRepository.save(tgMessage);
     }
-    public Optional<TgMessage> findLastAvailableByUserId(final long userId) {
+
+    public Optional<TgMessage> findLastByUserId(final long userId) {
+        return tgMessageRepository.findLastAndNotDeletedByUserId(userId);
+    }
+
+    public Optional<TgMessage> findLastEditableByUserId(final long userId) {
         final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
-        return tgMessageRepository.findLastByUserId(userId, tgRestrictionDateTime);
+        return tgMessageRepository.findLastByUserIdAndCreatedAtLessThanAndNotDeleted(userId, tgRestrictionDateTime);
     }
 
     public List<TgMessage> findNotDeletedByUserIdAndCommand(final long userId, final CommandEnum command) {
@@ -48,11 +53,12 @@ public class TgMessageService {
         tgMessageRepository.save(messageToDelete);
     }
 
-    public void update(final int messageId, final String text, final CommandEnum command, final boolean answerExcepted) {
+    public void update(final int messageId, final String text, final CommandEnum command, final boolean answerExcepted, final String messageMetaInfo) {
         final TgMessage tgMessage = tgMessageRepository.findById((long) messageId).orElseThrow();
         tgMessage.setCommand(command);
         tgMessage.setMessageText(text);
         tgMessage.setAnswerExcepted(answerExcepted);
+        tgMessage.setMessageMetaInfo(messageMetaInfo);
         tgMessageRepository.save(tgMessage);
     }
 }

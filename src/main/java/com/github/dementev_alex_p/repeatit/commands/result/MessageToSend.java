@@ -13,22 +13,31 @@ public class MessageToSend {
     private final String text;
     private final List<CommandLine> availableCommands;
     private final boolean isAnswerExcepted;
+    /*
+    Доп информация. Служит для сохранения контекста
+    */
+    private final String messageMetaInfo;
 
     public MessageToSend(final String text) {
         this.text = text;
         this.availableCommands = Collections.emptyList();
         this.isAnswerExcepted = false;
+        this.messageMetaInfo = null;
     }
 
     public MessageToSend(final String text, final List<CommandLine> availableCommands) {
         this.text = text;
         this.availableCommands = availableCommands;
         this.isAnswerExcepted = false;
+        this.messageMetaInfo = null;
+
     }
 
     public MessageToSend(final String text, final CommandLine... commandLines) {
         this.text = text;
         this.availableCommands = Arrays.asList(commandLines);
         this.isAnswerExcepted = false;
+        this.messageMetaInfo = null;
+
     }
 }

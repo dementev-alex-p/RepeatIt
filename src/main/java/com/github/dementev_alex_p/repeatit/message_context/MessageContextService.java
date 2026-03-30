@@ -1,11 +1,10 @@
 package com.github.dementev_alex_p.repeatit.message_context;
 
-import com.github.dementev_alex_p.repeatit.commands.handlers.EditionCardCommandHandler;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,9 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,8 +22,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class MessageContextService {
     private final TgMessageService tgMessageService;
-    private static final String START_MESSAGE = "/start";
-    private static final String EDIT_MESSAGE = "/edit_card";
 
     public MessageContext create(Update update) {
 
@@ -59,7 +58,7 @@ public class MessageContextService {
                 command.commandEnum,
                 command.parameters,
                 callbackId
-                );
+        );
     }
 
     private Command determinateCommand(
@@ -76,30 +75,25 @@ public class MessageContextService {
         }
         if (message.isPresent()) {
             if (message.get().startsWith("/")) {
-                if (message.get().equals(START_MESSAGE)) {
+                final String command = message.get().substring(1);
+                if (command.equals(CommandEnum.START.getCode())) {
                     return new Command(CommandEnum.START, new HashMap<>());
-                } else if (message.get().startsWith(EDIT_MESSAGE)) {
-                    final long cardId = Long.parseLong(message.get().substring(EDIT_MESSAGE.length()).trim());
-                    final CommandParameter cardIdParameter = CommandButtonUtils.createCardIdParameter(cardId);
-                    final CommandParameter actionParameter = CommandButtonUtils.createActionParameter(
-                            EditionCardCommandHandler.START_EDITION_ACTION
-                    );
-
-                    return new Command(
-                            CommandEnum.EDIT_CARD,
-                            Map.of(
-                                    cardIdParameter.getName(), cardIdParameter.getValue(),
-                                    actionParameter.getName(), actionParameter.getValue()
-                            )
-                    );
-                } else {
-                        throw new IllegalArgumentException("Команда не поддерживается!");
+                }
+                if (command.startsWith(CommandEnum.VIEW_CARD.getCode())) {
+                    final long cardId = Long.parseLong(command.substring(CommandEnum.VIEW_CARD.getCode().length()).trim());
+                    final CommandParameter cardIdParameter = CommandParameterUtils.createCardIdParameter(cardId);
+                    return new Command(CommandEnum.VIEW_CARD, Map.of(cardIdParameter.getName(), cardIdParameter.getValue()));
                 }
             }
-            final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(userId);
-            if (lastMessage.filter(TgMessage::isAnswerExcepted).isPresent()) {
-                return new Command(lastMessage.get().getCommand(), new HashMap<>());
+
+            final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);
+            final boolean isExceptedAnswer = lastMessage.filter(TgMessage::isAnswerExcepted).isPresent();
+            if (isExceptedAnswer) {
+                final Map<String, String> parameters = new HashMap<>();
+                parameters.put(CommandParameterUtils.LAST_MESSAGE_META_INFO, lastMessage.get().getMessageMetaInfo());
+                return new Command(lastMessage.get().getCommand(), parameters);
             }
+            //Если мы не ждали ответа значит это создание новой карточки
             return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
         }
         throw new IllegalArgumentException("Сообщение пользователя не поддерживается!");
@@ -118,5 +112,5 @@ public class MessageContextService {
         }
     }
 
-    private record Command(CommandEnum commandEnum, Map<String, String> parameters) {}
+    private record Command(CommandEnum commandEnum, Map<String, String> parameters) { }
 }

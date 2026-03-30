@@ -1,9 +1,10 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers;
 
-import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
@@ -15,25 +16,24 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DeletionCardCommandHandler implements CommandHandler {
+public class DeletionCollectionCommandHandler implements CommandHandler {
 
 
-    private static final String DELETED_TEXT = "Карточка успешно удалена!";
-    private final CardService cardService;
+    private static final String DELETED_TEXT = "Коллекция успешно удалена!";
+    private final CardCollectionService cardCollectionService;
 
     @Override
     public CommandEnum getCommand() {
-        return CommandEnum.DELETE_CARD;
+        return CommandEnum.DELETE_COLLECTION;
     }
 
     @Override
     public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
-        long cardId = CommandParameterUtils.extractCardId(context);
-        cardService.softDeleteCardById(cardId);
-        return new ProcessingResult(RIResponse
-                .builder()
+        final long collectionId = CommandParameterUtils.extractCollectionId(context);
+        cardCollectionService.softDeleteById(collectionId);
+        return new ProcessingResult(RIResponse.builder()
                 .text(DELETED_TEXT)
-                .availableCommands(List.of(new CommandLine(CommandEnum.START)))
+                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.COLLECTIONS))))
                 .build()
         );
     }

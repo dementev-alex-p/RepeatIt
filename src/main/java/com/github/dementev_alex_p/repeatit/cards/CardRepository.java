@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -53,4 +54,19 @@ public interface CardRepository extends JpaRepository<Card, Long> {
             """)
     List<Card> searchCards(long userId, String searchQuery, final int limit);
 
+    @Query("""
+           SELECT c FROM Card c WHERE c.cardCollectionId = :collectionId ORDER BY c.createdAt LIMIT :limit OFFSET :offset
+           """)
+    List<Card> findByCardCollectionId(final long collectionId, final int limit, final int offset);
+
+    @Query("""
+            SELECT count(c) FROM Card c WHERE c.cardCollectionId = :collectionId
+            """)
+    Integer findCountByCardCollectionId(final long collectionId);
+
+    @Modifying
+    @Query("""
+            UPDATE Card c SET c.status = 'DELETED', c.updatedAt = CURRENT_TIMESTAMP\s WHERE c.cardCollectionId = :collectionId AND c.status != 'DELETED'
+            """)
+    void softDeleteCardsByCollectionId(final long collectionId);
 }

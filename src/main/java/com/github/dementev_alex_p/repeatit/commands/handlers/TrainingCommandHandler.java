@@ -3,11 +3,8 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.*;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.buttons.*;
+import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
@@ -17,7 +14,7 @@ import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnu
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -102,26 +99,25 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult showBackSide(final MessageContext context, final Training training) {
-        final long cardId = Long.parseLong(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT));
+        final long cardId = Long.parseLong(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE));
         final Card card = cardService.findCardById(cardId);
 
         final List<CommandLine> commandLines = Arrays.asList(
-                new CommandLine(new EditCardButton(cardId)),
+                new CommandLine(new ViewCardButton(cardId)),
                 createScoreCommandLine(cardId)
         );
-        final MessageToSend messageToSend = new MessageToSend(
-                String.format(
-                        NEXT_CARD_TEXT,
-                        training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
-                        CardTextConverter.forTraining(card, true)
-                ),
-                commandLines,
-                false
+        final String newCardText = String.format(
+                NEXT_CARD_TEXT,
+                training.getTrainingCards().stream().filter(c -> c.getCardId() == cardId).findAny().orElseThrow().getOrderIndex(),
+                CardTextConverter.forTraining(card, true)
         );
-        final Optional<TgMessage> lastMessage = tgMessageService.findLastAvailableByUserId(training.getUserId());
-        return lastMessage.isEmpty()
-                ? new ProcessingResult(messageToSend)
-                : new ProcessingResult(new MessageToEdit(lastMessage.get().getTgMessageId(), messageToSend));
+
+        return new ProcessingResult(RIResponse
+                .builder()
+                .text(newCardText)
+                .availableCommands(commandLines)
+                .build()
+        );
     }
 
     private boolean isHideBackSideCommand(final MessageContext context) {
@@ -149,7 +145,7 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private void scorePreviousCardIfRequired(Training training, MessageContext context) {
-        Optional.ofNullable(context.commandParameters().get(CommandButtonUtils.CARD_PARAMETER_TEXT))
+        Optional.ofNullable(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE))
                 .map(Long::parseLong)
                 .map(cardId -> extractTrainingCardById(training, cardId))
                 .ifPresent(previousCard ->
@@ -189,15 +185,13 @@ public class TrainingCommandHandler implements CommandHandler {
         final MessageToEdit statisticMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
                 String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
-                Collections.singletonList(new CommandLine(new FinishTrainingButton())),
-                false
+                Collections.singletonList(new CommandLine(new FinishTrainingButton()))
         );
 
         final MessageToEdit newCardMessage = new MessageToEdit(
                 previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
                 String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardTextConverter.forTraining(card, false)),
-                createCommandLineForCard(card),
-                false
+                createCommandLineForCard(card)
         );
         return new ProcessingResult(
                 Collections.emptyList(),
@@ -276,7 +270,6 @@ public class TrainingCommandHandler implements CommandHandler {
                 createCommandLineForCard(firstCard)
         );
 
-
         return new ProcessingResult(
                 List.of(startTrainingMessage, firstCardMessage),
                 Collections.emptyList(),
@@ -289,7 +282,7 @@ public class TrainingCommandHandler implements CommandHandler {
         if (card.getBackSide() != null) {
             commandLines.add(new CommandLine(new ShowBackSideButton(card.getId())));
         } else {
-            commandLines.add(new CommandLine(new EditCardButton(card.getId())));
+            commandLines.add(new CommandLine(new ViewCardButton(card.getId())));
         }
         commandLines.add(createScoreCommandLine(card.getId()));
         return commandLines;

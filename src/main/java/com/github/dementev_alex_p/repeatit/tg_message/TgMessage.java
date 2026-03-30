@@ -53,14 +53,19 @@ public class TgMessage {
     @ToString.Exclude
     private boolean isAnswerExcepted;
 
-    public TgMessage(Integer messageId, long userId, Long chatId, CommandEnum command, String text, boolean isAnswerExcepted) {
+    @Column(name = "message_meta_info")
+    @ToString.Exclude
+    private String messageMetaInfo;
+
+    public TgMessage(int tgMessageId, long userId, Long chatId, CommandEnum command, String text, boolean isAnswerExcepted, String messageMetaInfo) {
         this.messageText = text;
         this.command = command;
         this.chatId = chatId;
         this.userId = userId;
-        this.tgMessageId = messageId;
+        this.tgMessageId = tgMessageId;
         this.createdAt = LocalDateTime.now();
         this.isDeleted = false;
         this.isAnswerExcepted = isAnswerExcepted;
+        this.messageMetaInfo = messageMetaInfo;
     }
 }

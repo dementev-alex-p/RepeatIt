@@ -51,6 +51,9 @@ public class CardCollection {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     public CardCollection(final long userId, final String name, final long parentCollectionId, final boolean isPublic) {
         this.authorId = userId;
         this.name = name;

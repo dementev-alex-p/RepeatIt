@@ -3,6 +3,7 @@ package com.github.dementev_alex_p.repeatit.cards;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -33,6 +34,22 @@ public class CardService {
         card.setBackSide(backSide);
         card.setStatus(CardStatus.READY);
         return cardRepository.save(card);
+    }
+
+    @Transactional
+    public void updateFrontSideByCardId(final long cardId, final String frontSide) {
+        final Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+        card.setFrontSide(frontSide);
+        cardRepository.save(card);
+    }
+
+    @Transactional
+    public void updateBackSideByCardId(final long cardId, final String backSide) {
+        final Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Card not found"));
+        card.setBackSide(backSide);
+        cardRepository.save(card);
     }
 
     public void updateStatus(final Card card, final CardStatus status) {
@@ -135,5 +152,17 @@ public class CardService {
 
     public List<Card> findCardsForDailyTraining(final long userId) {
         return cardRepository.findCardsForDailyTraining(userId);
+    }
+
+    public List<Card> findCardByCollectionId(final long collectionId, final int limit, final int offset) {
+        return cardRepository.findByCardCollectionId(collectionId, limit, offset);
+    }
+
+    public Integer findCardCountByCollectionId(final long collectionId) {
+        return cardRepository.findCountByCardCollectionId(collectionId);
+    }
+
+    public void softDeleteCardsByCollectionId(final long collectionId) {
+        cardRepository.softDeleteCardsByCollectionId(collectionId);
     }
 }

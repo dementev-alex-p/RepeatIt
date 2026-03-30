@@ -1,7 +1,7 @@
-package com.github.dementev_alex_p.repeatit.commands.result.buttons;
+package com.github.dementev_alex_p.repeatit.commands.buttons;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 
 import java.util.Arrays;
 
@@ -13,8 +13,8 @@ public class SkipBackSideButton extends CommandButton {
                 command,
                 TEXT,
                 Arrays.asList(
-                    CommandButtonUtils.createActionParameter(ACTION_VALUE),
-                    CommandButtonUtils.createCardIdParameter(cardId)
+                    CommandParameterUtils.createActionParameter(ACTION_VALUE),
+                    CommandParameterUtils.createCardIdParameter(cardId)
                 )
         );
     }

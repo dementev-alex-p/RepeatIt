@@ -1,11 +1,11 @@
 package com.github.dementev_alex_p.repeatit.cards.collection;
 
-import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.users.User;
 import com.github.dementev_alex_p.repeatit.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +17,12 @@ public class CardCollectionService {
     private final UserService userService;
     private final CardService cardService;
 
-    public List<CardCollection> findAvailableForUser(long userId) {
-        return cardCollectionRepository.findAvailableForUser(userId);
+    public List<CardCollection> findPublicAvailableForUser(final long userId, final int limit, final int offset) {
+        return cardCollectionRepository.findPublicAvailableForUser(userId, limit, offset);
+    }
+
+    public int findCountPublicAvailableForUser(final long userId) {
+        return cardCollectionRepository.findCountPublicAvailableForUser(userId);
     }
 
     public List<CardCollection> findByAuthorId(final Long authorId, final int limit, final int offset) {
@@ -33,8 +37,8 @@ public class CardCollectionService {
         return cardCollectionRepository.findById(chosenCollectionId);
     }
 
-
-    public void forkCardCollection(CardCollection parentCollection, long userId) {
+    @Transactional
+    public CardCollection forkCardCollection(CardCollection parentCollection, long userId) {
         final User author = userService.getReferenceById(userId);
 
         final CardCollection newCardCollection = cardCollectionRepository.save(
@@ -42,5 +46,24 @@ public class CardCollectionService {
         );
 
         cardService.forkCards(parentCollection.getCards(), userId, newCardCollection.getId());
+        return newCardCollection;
+    }
+
+    @Transactional
+    public void softDeleteById(final long collectionId) {
+        final CardCollection collection = cardCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new RuntimeException("Collection not found"));
+        cardService.softDeleteCardsByCollectionId(collectionId);
+        collection.setDeleted(true);
+        cardCollectionRepository.save(collection);
+
+    }
+
+    @Transactional
+    public void updateTitleByCollectionId(final long collectionId, final String title) {
+        final CardCollection collection = cardCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new RuntimeException("Collection not found"));
+        collection.setName(title);
+        cardCollectionRepository.save(collection);
     }
 }

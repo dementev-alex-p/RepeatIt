@@ -5,11 +5,8 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
-import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.result.*;
+import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContextService;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
@@ -82,7 +79,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         Optional
                 .ofNullable(context.callBackId())
-                .ifPresent(callbackId -> answerToCallback(context, callbackId));
+                .ifPresent(this::answerToCallback);
         processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
@@ -92,10 +89,22 @@ public class TelegramBot extends TelegramLongPollingBot {
         processingResult
                 .getMessageIdsToDelete()
                 .forEach(messageIdToDelete -> deleteMessage(context, messageIdToDelete));
-
+        Optional.ofNullable(processingResult.getResponse())
+                .ifPresent(response -> sendResponse(context, response));
+        removeUserMessageIfRequired(context);
     }
 
-    private void answerToCallback(final MessageContext context, final String callbackId) {
+    /**
+     * Удаление введенного пользователем сообщения из истории переписки
+     * Удаление происходит, если пользователь отправил текстовое сообщение в рамках этой транзакции
+     */
+    private void removeUserMessageIfRequired(final MessageContext context) {
+        context.tgMessageId().ifPresent(messageId ->
+                deleteMessage(context, messageId)
+        );
+    }
+
+    private void answerToCallback(final String callbackId) {
         AnswerCallbackQuery answer = AnswerCallbackQuery
                 .builder()
                 .callbackQueryId(callbackId)
@@ -145,7 +154,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public InlineQueryResult toInlineQueryResult(Card card) {
 
         final InputTextMessageContent messageContent = InputTextMessageContent.builder()
-                .messageText("/edit_card " + card.getId())
+                .messageText(String.format("/%s %d", CommandEnum.VIEW_CARD.getCode(), card.getId()))
                 .build();
 
         return InlineQueryResultArticle.builder()
@@ -179,8 +188,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 .build();
 
         try {
-            Message message = execute(sendMessage);
-            tgMessageService.save(convertMessage(message, context, messageToSend.isAnswerExcepted()));
+            Message sentMessage = execute(sendMessage);
+            tgMessageService.save(convertMessage(messageToSend, context, sentMessage.getMessageId()));
             Thread.sleep(50);
 
         } catch (Exception e) {
@@ -189,12 +198,22 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void editMessage(MessageContext context, MessageToEdit messageToEdit) {
+        int messageId = messageToEdit.getMessageId();
+        if (messageId == MessageToEdit.LAST_MESSAGE) {
+            final Optional<TgMessage> lastMessage = tgMessageService.findLastEditableByUserId(context.userId());
+            if (lastMessage.isEmpty()) {
+                // последнее сообщение недоступно для редактирования, значит отправляем новое
+                sendMessageToUser(context, messageToEdit);
+                return;
+            }
+            messageId = lastMessage.get().getTgMessageId();
+        }
         final List<CommandLine> availableCommands = messageToEdit.getAvailableCommands();
         final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(availableCommands);
 
         final EditMessageText editMessage = EditMessageText.builder()
                 .chatId(context.chatId())
-                .messageId(messageToEdit.getMessageId())
+                .messageId(messageId)
                 .text(messageToEdit.getText())
                 .parseMode("HTML")
                 .replyMarkup(inlineKeyboard)
@@ -202,21 +221,93 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         try {
             execute(editMessage);
-            tgMessageService.update(editMessage.getMessageId(), editMessage.getText(), context.command(), messageToEdit.isAnswerExcepted());
+            tgMessageService.update(editMessage.getMessageId(), editMessage.getText(), context.command(), messageToEdit.isAnswerExcepted(), messageToEdit.getMessageMetaInfo());
             Thread.sleep(50);
         } catch (Exception e) {
             log.error("ERROR. Cause: {}", e.getMessage());
         }
     }
 
-    private TgMessage convertMessage(final Message sentMessage, final MessageContext context, final boolean isAnswerExcepted) {
+    private void sendResponse(final MessageContext context, final RIResponse response) {
+        final Optional<TgMessage> lastEditableMessage = tgMessageService.findLastEditableByUserId(context.userId());
+
+        if (lastEditableMessage.isEmpty()) {
+            sendNewMessage(context, response);
+        } else {
+            editLastMessage(context, response, lastEditableMessage.get());
+        }
+    }
+
+    private void sendNewMessage(final MessageContext context, final RIResponse response) {
+        final ReplyKeyboard inlineKeyboard = createInlineKeyboard(response.getAvailableCommands());
+
+        final SendMessage sendMessage = SendMessage
+                .builder()
+                .chatId(context.chatId())
+                .text(response.getText())
+                .parseMode("HTML")
+                .replyMarkup(inlineKeyboard)
+                .build();
+
+        try {
+            Message sentMessage = execute(sendMessage);
+            tgMessageService.save(convertMessage(response, context, sentMessage.getMessageId()));
+            Thread.sleep(50);
+
+        } catch (Exception e) {
+            log.error("ERROR. Cause: {}", e.getMessage());
+        }
+    }
+
+    private void editLastMessage(final MessageContext context, final RIResponse response, final TgMessage lastMessage) {
+        final int tgMessageId = lastMessage.getTgMessageId();
+        final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(response.getAvailableCommands());
+
+        final EditMessageText editMessage = EditMessageText.builder()
+                .chatId(context.chatId())
+                .messageId(tgMessageId)
+                .text(response.getText())
+                .parseMode("HTML")
+                .replyMarkup(inlineKeyboard)
+                .build();
+
+        try {
+            execute(editMessage);
+            tgMessageService.update(editMessage.getMessageId(),
+                    editMessage.getText(),
+                    context.command(),
+                    response.isAnswerExcepted(),
+                    response.getMessageMetaInfo()
+            );
+            Thread.sleep(50);
+        } catch (Exception e) {
+            log.error("ERROR. Cause: {}", e.getMessage());
+        }
+    }
+
+    private TgMessage convertMessage(final MessageToSend message, final MessageContext context, final int tgMessageId) {
         return new TgMessage(
-                sentMessage.getMessageId(),
+                tgMessageId,
                 context.userId(),
-                sentMessage.getChatId(),
+                context.chatId(),
                 context.command(),
-                sentMessage.getText(),
-                isAnswerExcepted
+                message.getText(),
+                message.isAnswerExcepted(),
+                message.getMessageMetaInfo()
+
+        );
+    }
+
+    private TgMessage convertMessage(final RIResponse message, final MessageContext context, final int tgMessageId) {
+        return new TgMessage(
+                tgMessageId,
+                context.userId(),
+                context.chatId(),
+                context.command(),
+                message.getText(),
+                message.isAnswerExcepted(),
+                message.getMessageMetaInfo()
+
         );
     }
 

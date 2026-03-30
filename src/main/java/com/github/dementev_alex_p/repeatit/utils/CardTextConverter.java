@@ -19,20 +19,26 @@ public class CardTextConverter {
     public static String convertForCreatingCard(final String frontSide) {
         return frontSide == null
                 ? String.format(CARD_VIEW_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS)
-                : String.format(CARD_VIEW_TEXT, frontSide, SUSPENSION_POINTS);
+                : String.format(CARD_VIEW_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS);
     }
 
     public static String convertCardToTextForView(final Card card) {
         return card.getBackSide() == null
-                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide())
-                : String.format(CARD_VIEW_TEXT, card.getFrontSide(), card.getBackSide());
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, escapeForHtml(card.getFrontSide()))
+                : String.format(CARD_VIEW_TEXT, escapeForHtml(card.getFrontSide()), escapeForHtml(card.getBackSide()));
     }
 
 
     public static String forTraining(final Card card, final boolean isShowBackSide) {
         return card.getBackSide() != null
-                ? String.format(CARD_VIEW_TEXT, card.getFrontSide(), isShowBackSide ? card.getBackSide() : HIDE_BACK_SIDE)
-                : String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, card.getFrontSide());
+                ? String.format(CARD_VIEW_TEXT, escapeForHtml(card.getFrontSide()), isShowBackSide ? escapeForHtml(card.getBackSide()) : HIDE_BACK_SIDE)
+                : String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, escapeForHtml(card.getFrontSide()));
+    }
+
+    public static String escapeForHtml(String text) {
+        return text
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
 }

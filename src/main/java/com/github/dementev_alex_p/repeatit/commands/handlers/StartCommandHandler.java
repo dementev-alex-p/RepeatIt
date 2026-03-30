@@ -5,12 +5,17 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import com.github.dementev_alex_p.repeatit.users.User;
 import com.github.dementev_alex_p.repeatit.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +23,7 @@ public class StartCommandHandler implements CommandHandler {
 
     private final UserService userService;
     private final CardService cardService;
+    private final TgMessageService tgMessageService;
 
     private static final String GREETING = """
             %s, приветствую!
@@ -41,23 +47,30 @@ public class StartCommandHandler implements CommandHandler {
                     context.userId(),
                     context.userName()
             ));
-            return new ProcessingResult(new MessageToSend(
-                    String.format(GREETING, context.userName()),
+            final List<CommandLine> commandLines = List.of(
                     new CommandLine(CommandEnum.TRAINING),
                     new CommandLine(CommandEnum.CARDS),
                     new CommandLine(CommandEnum.COLLECTIONS),
                     new CommandLine(CommandEnum.SETTINGS)
-            ));
+            );
+            return new ProcessingResult(RIResponse
+                    .builder()
+                    .text(String.format(GREETING, context.userName()))
+                    .availableCommands(commandLines)
+                    .build());
         }
         final int countForDailyTraining = cardService.findCountForDailyTrainingByUserId(context.userId());
 
-        return new ProcessingResult(new MessageToSend(
-                String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
-                new CommandLine(CommandEnum.TRAINING),
-                new CommandLine(CommandEnum.CARDS),
-                new CommandLine(CommandEnum.COLLECTIONS),
-                new CommandLine(CommandEnum.SETTINGS)
-        ));
+        return new ProcessingResult(
+                Collections.singletonList(new MessageToSend(
+                    String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
+                    new CommandLine(CommandEnum.TRAINING),
+                    new CommandLine(CommandEnum.CARDS),
+                    new CommandLine(CommandEnum.COLLECTIONS)
+                )),
+                Collections.emptyList(),
+                tgMessageService.findMessageIdsForDeletion(context.userId())
+        );
     }
 
 

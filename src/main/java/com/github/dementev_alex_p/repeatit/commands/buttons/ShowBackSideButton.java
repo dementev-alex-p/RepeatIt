@@ -1,7 +1,7 @@
-package com.github.dementev_alex_p.repeatit.commands.result.buttons;
+package com.github.dementev_alex_p.repeatit.commands.buttons;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.utils.CommandButtonUtils;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 
 public class ShowBackSideButton extends CommandButton {
     public static final String TEXT = "📖 Показать содержание";
@@ -9,8 +9,8 @@ public class ShowBackSideButton extends CommandButton {
         super(
                 CommandEnum.TRAINING,
                 TEXT,
-                CommandButtonUtils.createActionParameter("show_back_side"),
-                CommandButtonUtils.createCardIdParameter(cardId)
+                CommandParameterUtils.createActionParameter("show_back_side"),
+                CommandParameterUtils.createCardIdParameter(cardId)
         );
     }
 
