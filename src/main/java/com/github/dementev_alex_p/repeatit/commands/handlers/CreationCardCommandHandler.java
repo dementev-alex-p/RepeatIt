@@ -41,7 +41,7 @@ public class CreationCardCommandHandler implements CommandHandler {
 
     private final CardService cardService;
     private final TgMessageService tgMessageService;
-    private final SingleCardCommandHandler singleCardCommandHandler;
+    private final ViewCardCommandHandler viewCardCommandHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -74,7 +74,7 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult skipBackSide(final MessageContext context) {
-        final RIResponse response = singleCardCommandHandler.processCommand(context).getResponse();
+        final RIResponse response = viewCardCommandHandler.processCommand(context).getResponse();
         return new ProcessingResult(response.withAlter(FINISH_CREATION_TEXT));
     }
 
@@ -122,7 +122,7 @@ public class CreationCardCommandHandler implements CommandHandler {
     private ProcessingResult saveCardBackSide(final MessageContext context, final long cardId, final String backSide) {
         cardService.updateBackSide(cardId, backSide);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        final RIResponse response = singleCardCommandHandler.processCommand(context).getResponse();
+        final RIResponse response = viewCardCommandHandler.processCommand(context).getResponse();
         return new ProcessingResult(response.withAlter(FINISH_CREATION_TEXT));
     }
 

@@ -14,7 +14,7 @@ public class DeletionBackSideHandler implements CommandHandler {
 
 
     private final CardService cardService;
-    private final SingleCardCommandHandler singleCardCommandHandler;
+    private final ViewCardCommandHandler viewCardCommandHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -26,7 +26,7 @@ public class DeletionBackSideHandler implements CommandHandler {
         final long cardId = CommandParameterUtils.extractCardId(context);
         cardService.updateBackSideByCardId(cardId, null);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        return singleCardCommandHandler.processCommand(context);
+        return viewCardCommandHandler.processCommand(context);
 
     }
 }

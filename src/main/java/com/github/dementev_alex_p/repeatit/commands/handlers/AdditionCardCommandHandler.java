@@ -34,10 +34,10 @@ public class AdditionCardCommandHandler implements CommandHandler {
         final List<CommandLine> commandLines = Arrays.asList(
                 new CommandLine(Arrays.asList(
                         new CommandButton(CommandEnum.CREATE_CARD),
-                        new PublicCollectionsButton(CommandEnum.COLLECTIONS.getDescription()),
+                        new PublicCollectionsButton(CommandEnum.VIEW_COLLECTION_LIST.getDescription()),
                         new CommandButton(CommandEnum.IMPORT_CARDS)
                 )),
-                new CommandLine(new BackButton(CommandEnum.CARDS))
+                new CommandLine(new BackButton(CommandEnum.VIEW_CARD_LIST))
         );
         return new ProcessingResult(RIResponse
                 .builder()

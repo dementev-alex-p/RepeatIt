@@ -44,7 +44,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
         final CardCollection fork = cardCollectionService.forkCardCollection(collection, context.userId());
         final String message = String.format(TITLE_TEXT, collection.getName());
         final List<CommandLine> commandLines = List.of(
-                new CommandLine(new BackButton(CommandEnum.VIEW_SINGLE_COLLECTION, CommandParameterUtils.createCollectionIdParameter(fork.getId())))
+                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION, CommandParameterUtils.createCollectionIdParameter(fork.getId())))
         );
         return new ProcessingResult(RIResponse
                 .builder()

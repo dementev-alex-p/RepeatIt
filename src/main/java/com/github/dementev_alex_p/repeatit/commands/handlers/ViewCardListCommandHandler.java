@@ -13,7 +13,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class CardsCommandHandler implements CommandHandler {
+public class ViewCardListCommandHandler implements CommandHandler {
 
     private static final String YOUR_CARDS = """
             <strong>Карточки</strong>
@@ -25,7 +25,7 @@ public class CardsCommandHandler implements CommandHandler {
 
     @Override
     public CommandEnum getCommand() {
-        return CommandEnum.CARDS;
+        return CommandEnum.VIEW_CARD_LIST;
     }
 
     @Override

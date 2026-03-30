@@ -6,7 +6,7 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 public class PreviousCardsButton extends CommandButton {
     public PreviousCardsButton(final int page, final long collectionId) {
         super(
-                CommandEnum.VIEW_SINGLE_COLLECTION,
+                CommandEnum.VIEW_COLLECTION,
                 "<<",
                 CommandParameterUtils.createPageParameter(page), CommandParameterUtils.createCollectionIdParameter(collectionId)
         );

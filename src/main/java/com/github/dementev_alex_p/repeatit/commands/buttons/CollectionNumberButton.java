@@ -7,7 +7,7 @@ public class CollectionNumberButton extends CommandButton{
 
     public CollectionNumberButton(final int number, final long collectionId) {
         super(
-                CommandEnum.VIEW_SINGLE_COLLECTION,
+                CommandEnum.VIEW_COLLECTION,
                 String.valueOf(number),
                 CommandParameterUtils.createCollectionIdParameter(collectionId),
                 CommandParameterUtils.createPageParameter(1)

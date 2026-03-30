@@ -30,7 +30,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
             ✍ Введите новое содержание
             """;
     private final CardService cardService;
-    private final SingleCardCommandHandler singleCardCommandHandler;
+    private final ViewCardCommandHandler viewCardCommandHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -62,7 +62,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
             final long cardId = Long.parseLong(CommandParameterUtils.extractLastMessageMetaInfo(context));
             cardService.updateBackSideByCardId(cardId, context.message().get());
             context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-            return singleCardCommandHandler.processCommand(context);
+            return viewCardCommandHandler.processCommand(context);
         }
     }
 }
