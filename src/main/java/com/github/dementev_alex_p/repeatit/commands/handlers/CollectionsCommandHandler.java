@@ -10,7 +10,6 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +61,7 @@ public class CollectionsCommandHandler implements CommandHandler {
 
     @Override
     @Transactional
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         if (isPublicCollectionView(context)) {
             return viewPublicCollections(context);
         } else {

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -20,20 +21,14 @@ public class CardService {
     }
 
     public Card createCard(long userId, String message) {
-        return cardRepository.save(new Card(userId, message, CardStatus.DRAFT));
+        return cardRepository.save(new Card(userId, message));
     }
 
-    public Card complitCreationCard(final Card card, final String backSide) {
+    @Transactional
+    public void updateBackSide(final long cardId, final String backSide) {
+        final Card card = cardRepository.findById(cardId).orElseThrow();
         card.setBackSide(backSide);
-        card.setStatus(CardStatus.READY);
-        return cardRepository.save(card);
-    }
-
-    public Card updateContent(final Card card, final String frontSide, final String backSide) {
-        card.setFrontSide(frontSide);
-        card.setBackSide(backSide);
-        card.setStatus(CardStatus.READY);
-        return cardRepository.save(card);
+        cardRepository.save(card);
     }
 
     @Transactional
@@ -52,10 +47,6 @@ public class CardService {
         cardRepository.save(card);
     }
 
-    public void updateStatus(final Card card, final CardStatus status) {
-        card.setStatus(status);
-        cardRepository.save(card);
-    }
 
     public void forkCards(final List<Card> cards, final long userId, final long collectionId) {
         final List<Card> cardsForSave = cards
@@ -64,8 +55,7 @@ public class CardService {
                         card.getFrontSide(),
                         card.getBackSide(),
                         userId,
-                        collectionId,
-                        CardStatus.READY
+                        collectionId
                 )).toList();
         cardRepository.saveAll(cardsForSave);
     }
@@ -107,28 +97,9 @@ public class CardService {
         return easinessFactor < 1.3 ? 1.3f : easinessFactor;
     }
 
-    public Optional<Card> findDraftCardByUserId(final long userId) {
-        final List<Card> cards = cardRepository.findByUserIdAndStatusIn(
-                userId, Collections.singletonList(CardStatus.DRAFT)
-        );
-        if (cards.size() > 1) {
-            throw new RuntimeException("Черновиков не может быть несколько");
-        }
-        return cards.isEmpty() ? Optional.empty() : Optional.of(cards.get(0));
-    }
-
-    public Optional<Card> findEditingCardByUserId(final long userId) {
-        final List<Card> cards = cardRepository.findByUserIdAndStatusIn(
-                userId, Arrays.asList(CardStatus.EDITING_FRONT_SIDE, CardStatus.EDITING_BACK_SIDE)
-        );
-        if (cards.size() > 1) {
-            throw new RuntimeException("Редактируемых карточек не может быть несколько");
-        }
-        return Optional.ofNullable(cards.get(0));
-    }
 
     public int findCardCountForUserId(final long userId) {
-        return cardRepository.countCardByUserId(userId);
+        return cardRepository.countNotDeletedCardsByUserId(userId);
     }
 
     public int findCountForDailyTrainingByUserId(final long userId) {
@@ -146,7 +117,7 @@ public class CardService {
     public void softDeleteCardById(final long cardId) {
         final Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new RuntimeException("Карточка уже удалена ранее"));
-        card.setStatus(CardStatus.DELETED);
+        card.setDeletedAt(LocalDateTime.now());
         cardRepository.save(card);
     }
 

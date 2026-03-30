@@ -9,7 +9,6 @@ import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +30,7 @@ public class AdditionCardCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         final List<CommandLine> commandLines = Arrays.asList(
                 new CommandLine(Arrays.asList(
                         new CommandButton(CommandEnum.CREATE_CARD),

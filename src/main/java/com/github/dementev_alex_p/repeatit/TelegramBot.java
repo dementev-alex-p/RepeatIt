@@ -11,6 +11,7 @@ import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContextService;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -70,6 +71,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasInlineQuery()) {
             processSearchRequest(update.getInlineQuery());
+            return;
         }
         final MessageContext context = messageContextService.create(update);
         final ProcessingResult processingResult = processRequest(context);
@@ -79,7 +81,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         Optional
                 .ofNullable(context.callBackId())
-                .ifPresent(this::answerToCallback);
+                .ifPresent(callbackId -> answerToCallback(callbackId, processingResult.getResponse()));
         processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
@@ -104,10 +106,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         );
     }
 
-    private void answerToCallback(final String callbackId) {
+    private void answerToCallback(final String callbackId, @Nullable final RIResponse riResponse) {
+        final String alert = Optional.ofNullable(riResponse).map(RIResponse::getAlter).orElse(null);
         AnswerCallbackQuery answer = AnswerCallbackQuery
                 .builder()
                 .callbackQueryId(callbackId)
+                .text(alert)
+                .showAlert(alert != null)
                 .build();
         try {
             execute(answer);
@@ -167,7 +172,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private ProcessingResult processRequest(MessageContext context) {
         try {
-            return handlersByCommand.get(context.command()).processCommand(this, context);
+            return handlersByCommand.get(context.command()).processCommand(context);
         } catch (Exception e) {
             log.error("ERROR. Cause: {}", e.getMessage());
             e.printStackTrace();

@@ -29,10 +29,10 @@ public class CommandParameterUtils {
         return new CommandParameter(PAGE_PARAMETER_CODE, String.valueOf(page));
     }
 
-    public static String extractAction(final MessageContext context) {
+    public static Optional<String> extractNullableAction(final MessageContext context) {
         return Optional
-                .ofNullable(context.commandParameters().get(ACTION_PARAMETER_CODE))
-                .orElseThrow();
+                .ofNullable(context.commandParameters())
+                .map(parameters -> parameters.get(ACTION_PARAMETER_CODE));
     }
 
     public static long extractCollectionId(final MessageContext context) {

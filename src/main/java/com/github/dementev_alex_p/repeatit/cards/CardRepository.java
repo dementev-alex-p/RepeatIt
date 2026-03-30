@@ -12,14 +12,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     @Query("""
         SELECT c FROM Card c
-        WHERE c.userId = :userId
-        ORDER BY c.updatedAt LIMIT :limit OFFSET :offset
-    """)
-    List<Card> findByUserId(final long userId, final int limit, final int offset);
-
-    @Query("""
-        SELECT c FROM Card c
-        WHERE c.userId = :userId AND c.status = 'READY'
+        WHERE c.userId = :userId AND c.deletedAt IS NULL
         ORDER BY c.nextRepeatDate LIMIT :limit
         """)
     List<Card> findCardsForExtraTraining(long userId, final int limit);
@@ -28,7 +21,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
         SELECT count(c) FROM Card c
             WHERE c.userId = :userId
             AND c.nextRepeatDate <= CURRENT_DATE
-            AND c.status = 'READY'
+            AND c.deletedAt IS NULL
         """)
     int findCountForDailyTrainingByUserId(final long userId);
 
@@ -36,37 +29,38 @@ public interface CardRepository extends JpaRepository<Card, Long> {
         SELECT c FROM Card c
             WHERE c.userId = :userId
             AND c.nextRepeatDate <= CURRENT_DATE
-            AND c.status = 'READY'
+            AND c.deletedAt IS NULL
         """)
     List<Card> findCardsForDailyTraining(long userId);
 
-    List<Card> findByUserIdAndStatusIn(final long userId, final List<CardStatus> statuses);
-
-    int countCardByUserId(long userId);
+    @Query("""
+        SELECT COUNT(c) FROM Card c WHERE c.userId = :userId AND c.deletedAt is null
+        """)
+    int countNotDeletedCardsByUserId(long userId);
 
     @Query(""" 
             SELECT c FROM Card c WHERE c.userId = :userId AND
             (LOWER(c.frontSide) LIKE LOWER(:searchQuery) OR
             LOWER(c.backSide) LIKE LOWER(:searchQuery))
-            AND c.status = 'READY'
+            AND c.deletedAt IS NULL
             ORDER BY c.updatedAt DESC
             LIMIT :limit
             """)
     List<Card> searchCards(long userId, String searchQuery, final int limit);
 
     @Query("""
-           SELECT c FROM Card c WHERE c.cardCollectionId = :collectionId ORDER BY c.createdAt LIMIT :limit OFFSET :offset
+           SELECT c FROM Card c WHERE c.cardCollectionId = :collectionId AND c.deletedAt IS NULL ORDER BY c.createdAt LIMIT :limit OFFSET :offset
            """)
     List<Card> findByCardCollectionId(final long collectionId, final int limit, final int offset);
 
     @Query("""
-            SELECT count(c) FROM Card c WHERE c.cardCollectionId = :collectionId
+            SELECT count(c) FROM Card c WHERE c.cardCollectionId = :collectionId AND c.deletedAt IS NULL
             """)
     Integer findCountByCardCollectionId(final long collectionId);
 
     @Modifying
     @Query("""
-            UPDATE Card c SET c.status = 'DELETED', c.updatedAt = CURRENT_TIMESTAMP\s WHERE c.cardCollectionId = :collectionId AND c.status != 'DELETED'
+            UPDATE Card c SET c.deletedAt = CURRENT TIMESTAMP  , c.updatedAt = CURRENT_TIMESTAMP WHERE c.cardCollectionId = :collectionId
             """)
     void softDeleteCardsByCollectionId(final long collectionId);
 }

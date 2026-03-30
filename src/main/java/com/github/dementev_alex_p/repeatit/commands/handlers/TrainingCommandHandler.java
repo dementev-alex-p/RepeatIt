@@ -19,7 +19,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,7 +67,7 @@ public class TrainingCommandHandler implements CommandHandler {
 
     @Transactional
     @Override
-    public ProcessingResult processCommand(final AbsSender sender, final MessageContext context) {
+    public ProcessingResult processCommand(final MessageContext context) {
 
         if (isStartTrainingCommands(context)) {
             return startTraining(context);
@@ -121,25 +120,25 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private boolean isHideBackSideCommand(final MessageContext context) {
-        return Optional.ofNullable(context.commandParameters().get("action"))
+        return CommandParameterUtils.extractNullableAction(context)
                 .filter(action -> action.equals("hide_back_side"))
                 .isPresent();
     }
 
     private boolean isShowBackSideCommand(final MessageContext context) {
-        return Optional.ofNullable(context.commandParameters().get("action"))
+        return CommandParameterUtils.extractNullableAction(context)
                 .filter(action -> action.equals("show_back_side"))
                 .isPresent();
     }
 
     private boolean isStartTrainingCommands(final MessageContext context) {
-        return Optional.ofNullable(context.commandParameters().get("action"))
+        return CommandParameterUtils.extractNullableAction(context)
                 .filter(action -> action.equals("start"))
                 .isPresent();
     }
 
     private boolean isFinishTrainingCommand(final MessageContext context) {
-        return Optional.ofNullable(context.commandParameters().get("action"))
+        return CommandParameterUtils.extractNullableAction(context)
                 .filter(action -> action.equals("end"))
                 .isPresent();
     }
@@ -232,9 +231,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 statistic.getOrDefault(RecallScoreEnum.DIFFICULT_RECALL, 0L),
                 statistic.getOrDefault(RecallScoreEnum.FAIL_RECALL, 0L)
         );
-        final MessageToSend messageToSend = new MessageToSend(
-                statisticText, new CommandLine(CommandEnum.START), new CommandLine(CommandEnum.TRAINING)
-        );
+        final MessageToSend messageToSend = new MessageToSend(statisticText, new CommandLine(CommandEnum.START));
 
         return new ProcessingResult(
                 Collections.singletonList(messageToSend),

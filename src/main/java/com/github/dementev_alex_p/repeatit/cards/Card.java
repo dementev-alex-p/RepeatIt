@@ -60,20 +60,18 @@ public class Card {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private CardStatus status;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
-    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId, final CardStatus status) {
-        this(userId, frontSide, status);
+    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId) {
+        this(userId, frontSide);
         this.backSide = backSide;
         this.cardCollectionId = cardCollectionId;
     }
 
-    protected Card(final Long userId, final String frontSide, final CardStatus status) {
+    protected Card(final Long userId, final String frontSide) {
         this.userId = userId;
         this.frontSide = frontSide;
-        this.status = status;
         streak = 0;
         easinessFactor = 2.5F;
         intervalDays = 0;

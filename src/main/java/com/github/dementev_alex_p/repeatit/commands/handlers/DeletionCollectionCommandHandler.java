@@ -10,7 +10,6 @@ import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class DeletionCollectionCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
         cardCollectionService.softDeleteById(collectionId);
         return new ProcessingResult(RIResponse.builder()

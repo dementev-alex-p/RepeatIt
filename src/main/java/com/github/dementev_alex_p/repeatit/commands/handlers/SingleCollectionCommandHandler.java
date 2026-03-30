@@ -23,7 +23,6 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ public class SingleCollectionCommandHandler implements CommandHandler {
 
     @Override
     @Transactional
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context))
                 .orElseThrow(() -> new RuntimeException("Коллекция не найдена"));
         final int page = CommandParameterUtils.extractPage(context);

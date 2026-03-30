@@ -12,7 +12,6 @@ import com.github.dementev_alex_p.repeatit.users.User;
 import com.github.dementev_alex_p.repeatit.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +40,7 @@ public class StartCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(final AbsSender sender, final MessageContext context) {
+    public ProcessingResult processCommand(final MessageContext context) {
         if (userService.findUserById(context.userId()).isEmpty()) {
             userService.saveUser(new User(
                     context.userId(),

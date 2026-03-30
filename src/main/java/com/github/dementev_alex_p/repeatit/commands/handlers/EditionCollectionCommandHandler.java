@@ -11,7 +11,6 @@ import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -38,14 +37,14 @@ public class EditionCollectionCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         final boolean isTitleChange = context.message().isPresent();
         if (isTitleChange) {
             final long collectionId = Long.parseLong(CommandParameterUtils.extractLastMessageMetaInfo(context));
             cardCollectionService.updateTitleByCollectionId(collectionId, context.message().get());
 
             context.commandParameters().put(CommandParameterUtils.COLLECTION_PARAMETER_CODE, String.valueOf(collectionId));
-            return singleCollectionCommandHandler.processCommand(sender, context);
+            return singleCollectionCommandHandler.processCommand(context);
         } else {
             final long collectionId = CommandParameterUtils.extractCollectionId(context);
             final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();

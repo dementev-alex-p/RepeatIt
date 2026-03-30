@@ -11,7 +11,6 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
             %s
             
             ✅ Коллекция успешно добавлена!
-            Карточки доступны для изучения и начнут появляться в ежедневных тренировках. 
+            Карточки доступны для изучения и начнут появляться в ежедневных тренировках.
             """;
 
     @Override
@@ -37,7 +36,7 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
 
     @Override
     @Transactional
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
 
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
 

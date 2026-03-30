@@ -7,7 +7,6 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ public class CardsCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         final int totalCardCount = cardService.findCardCountForUserId(context.userId());
         final List<CommandLine> commandLines = new ArrayList<>();
         commandLines.add(new CommandLine(

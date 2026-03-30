@@ -10,7 +10,6 @@ import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -34,13 +33,14 @@ public class SingleCardCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
 
         final long cardId = CommandParameterUtils.extractCardId(context);
         final Card card = cardService.findCardById(cardId);
         final List<CommandLine> commandLines = List.of(
                 new CommandLine(new EditCardFrontSideButton(card.getId())),
                 new CommandLine(new EditCardBackSideButton(card.getId())),
+                new CommandLine(new DeleteCardButton(card.getId())),
                 new CommandLine(new BackButton(CommandEnum.CARDS))
         );
 

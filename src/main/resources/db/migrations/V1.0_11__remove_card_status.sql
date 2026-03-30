@@ -1,0 +1,7 @@
+ALTER TABLE card
+    ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE;
+
+UPDATE card SET deleted_at = CURRENT_TIMESTAMP WHERE status = 'DELETED';
+
+ALTER TABLE card
+    DROP COLUMN status;

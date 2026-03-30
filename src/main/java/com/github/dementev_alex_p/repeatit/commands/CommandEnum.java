@@ -25,7 +25,7 @@ public enum CommandEnum {
     CREATE_COLLECTION("create_collection", "➕ Создать коллекцию", null),
     VIEW_SINGLE_COLLECTION("view_collection", "Просмотр коллекции", null),
     SETTINGS("settings", "Настройки", null),
-    DELETE_CARD("delete_card", "Удалить карточку", null),
+    DELETE_CARD("delete_card", "❌ Удалить", null),
     EDIT_COLLECTION("edit_collection_title", "✍ Изменить название", null),
     DELETE_COLLECTION("delete_collection", "Удалить коллекцию", null),
     ;

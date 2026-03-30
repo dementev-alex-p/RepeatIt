@@ -6,7 +6,6 @@ import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class SearchCardCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         return new ProcessingResult(RIResponse.builder()
                 .text(SEARCH_CARD_TEXT)
                 .availableCommands(List.of(new CommandLine(CommandEnum.START)))

@@ -12,7 +12,6 @@ import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class EditionCardFrontSideHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(AbsSender sender, MessageContext context) {
+    public ProcessingResult processCommand(MessageContext context) {
         if (context.message().isEmpty()) {
             long cardId = CommandParameterUtils.extractCardId(context);
             final Card card = cardService.findCardById(cardId);
@@ -53,7 +52,7 @@ public class EditionCardFrontSideHandler implements CommandHandler {
             final long cardId = Long.parseLong(CommandParameterUtils.extractLastMessageMetaInfo(context));
             cardService.updateFrontSideByCardId(cardId, context.message().get());
             context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-            return singleCardCommandHandler.processCommand(sender, context);
+            return singleCardCommandHandler.processCommand(context);
         }
     }
 }
