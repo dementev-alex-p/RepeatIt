@@ -28,7 +28,7 @@ public class EditionCollectionCommandHandler implements CommandHandler {
             """;
 
     private final CardCollectionService cardCollectionService;
-    private final SingleCollectionCommandHandler singleCollectionCommandHandler;
+    private final ViewCollectionCommandHandler viewCollectionCommandHandler;
 
 
     @Override
@@ -44,12 +44,12 @@ public class EditionCollectionCommandHandler implements CommandHandler {
             cardCollectionService.updateTitleByCollectionId(collectionId, context.message().get());
 
             context.commandParameters().put(CommandParameterUtils.COLLECTION_PARAMETER_CODE, String.valueOf(collectionId));
-            return singleCollectionCommandHandler.processCommand(context);
+            return viewCollectionCommandHandler.processCommand(context);
         } else {
             final long collectionId = CommandParameterUtils.extractCollectionId(context);
             final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
             final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton(
-                    CommandEnum.VIEW_SINGLE_COLLECTION,
+                    CommandEnum.VIEW_COLLECTION,
                     CommandParameterUtils.createCollectionIdParameter(collectionId))
             ));
             return new ProcessingResult(RIResponse

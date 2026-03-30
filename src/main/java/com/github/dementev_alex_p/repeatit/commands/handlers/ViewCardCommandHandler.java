@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SingleCardCommandHandler implements CommandHandler {
+public class ViewCardCommandHandler implements CommandHandler {
 
     private static final String TITLE_TEXT = """
             <strong>Карточка</strong>
@@ -41,7 +41,7 @@ public class SingleCardCommandHandler implements CommandHandler {
                 new CommandLine(new EditCardFrontSideButton(card.getId())),
                 new CommandLine(new EditCardBackSideButton(card.getId())),
                 new CommandLine(new DeleteCardButton(card.getId())),
-                new CommandLine(new BackButton(CommandEnum.CARDS))
+                new CommandLine(new BackButton(CommandEnum.VIEW_CARD_LIST))
         );
 
         return new ProcessingResult(RIResponse.builder()

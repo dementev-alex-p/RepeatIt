@@ -32,6 +32,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,6 +61,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         CommandHandler::getCommand,
                         Function.identity()
                 ));
+
     }
 
     @Override

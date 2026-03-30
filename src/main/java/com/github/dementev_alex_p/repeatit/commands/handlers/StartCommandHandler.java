@@ -48,8 +48,8 @@ public class StartCommandHandler implements CommandHandler {
             ));
             final List<CommandLine> commandLines = List.of(
                     new CommandLine(CommandEnum.TRAINING),
-                    new CommandLine(CommandEnum.CARDS),
-                    new CommandLine(CommandEnum.COLLECTIONS),
+                    new CommandLine(CommandEnum.VIEW_CARD_LIST),
+                    new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
                     new CommandLine(CommandEnum.SETTINGS)
             );
             return new ProcessingResult(RIResponse
@@ -64,8 +64,8 @@ public class StartCommandHandler implements CommandHandler {
                 Collections.singletonList(new MessageToSend(
                     String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
                     new CommandLine(CommandEnum.TRAINING),
-                    new CommandLine(CommandEnum.CARDS),
-                    new CommandLine(CommandEnum.COLLECTIONS)
+                    new CommandLine(CommandEnum.VIEW_CARD_LIST),
+                    new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
                 )),
                 Collections.emptyList(),
                 tgMessageService.findMessageIdsForDeletion(context.userId())

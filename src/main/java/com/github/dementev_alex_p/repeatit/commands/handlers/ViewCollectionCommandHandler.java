@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
-public class SingleCollectionCommandHandler implements CommandHandler {
+public class ViewCollectionCommandHandler implements CommandHandler {
 
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
@@ -73,7 +73,7 @@ public class SingleCollectionCommandHandler implements CommandHandler {
 
     @Override
     public CommandEnum getCommand() {
-        return CommandEnum.VIEW_SINGLE_COLLECTION;
+        return CommandEnum.VIEW_COLLECTION;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class SingleCollectionCommandHandler implements CommandHandler {
                 createCardNumbersLine(cards, page, totalCardCount, collection.getId()),
                 createCardAdditionLine(collection.getId()),
                 createCollectionActionsLine(collection),
-                new CommandLine(new BackButton(CommandEnum.COLLECTIONS))
+                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
         ).toList();
 
         return new ProcessingResult(RIResponse
@@ -132,7 +132,7 @@ public class SingleCollectionCommandHandler implements CommandHandler {
         createPaginationLine(cards, page, totalCardCount, collection.getId())
                 .ifPresent(lines::add);
         lines.add(new CommandLine(new AddPublicCollectionButton(collection.getId())));
-        lines.add(new CommandLine(new BackButton(CommandEnum.COLLECTIONS, CommandParameterUtils.createActionParameter(CollectionsCommandHandler.PUBLIC_COLLECTIONS_ACTION))));
+        lines.add(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST, CommandParameterUtils.createActionParameter(ViewCollectionListCommandHandler.PUBLIC_COLLECTIONS_ACTION))));
         return new ProcessingResult(RIResponse
                 .builder()
                 .text(messageText)

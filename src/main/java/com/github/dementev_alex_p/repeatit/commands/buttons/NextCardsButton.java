@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class NextCardsButton extends CommandButton {
     public NextCardsButton(final int page, final long collectionId) {
         super(
-                CommandEnum.VIEW_SINGLE_COLLECTION,
+                CommandEnum.VIEW_COLLECTION,
                 ">>",
                 Arrays.asList(
                         CommandParameterUtils.createPageParameter(page),

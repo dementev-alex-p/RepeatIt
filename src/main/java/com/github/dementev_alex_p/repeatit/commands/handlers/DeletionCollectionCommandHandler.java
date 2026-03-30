@@ -32,7 +32,7 @@ public class DeletionCollectionCommandHandler implements CommandHandler {
         cardCollectionService.softDeleteById(collectionId);
         return new ProcessingResult(RIResponse.builder()
                 .text(DELETED_TEXT)
-                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.COLLECTIONS))))
+                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.VIEW_COLLECTION_LIST))))
                 .build()
         );
     }

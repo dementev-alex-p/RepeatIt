@@ -23,8 +23,8 @@ public class DeletionCardCommandHandler implements CommandHandler {
     private static final String CONFIRM_TEXT = "\nВы уверены, что хотите удалить карточку?";
     private static final String CONFIRMED_DELETION_ACTION = "confirmed_deletion";
     private final CardService cardService;
-    private final CardsCommandHandler cardsCommandHandler;
-    private final SingleCardCommandHandler singleCardCommandHandler;
+    private final ViewCardListCommandHandler viewCardListCommandHandler;
+    private final ViewCardCommandHandler viewCardCommandHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -41,7 +41,7 @@ public class DeletionCardCommandHandler implements CommandHandler {
 
     private ProcessingResult sendConfirmation(final MessageContext context) {
         long cardId = CommandParameterUtils.extractCardId(context);
-        final RIResponse response = singleCardCommandHandler.processCommand(context).getResponse();
+        final RIResponse response = viewCardCommandHandler.processCommand(context).getResponse();
         final CommandLine commandLine = new CommandLine(
                 new CommandButton(
                         CommandEnum.DELETE_CARD,
@@ -65,7 +65,7 @@ public class DeletionCardCommandHandler implements CommandHandler {
     private ProcessingResult deleteCard(final MessageContext context) {
         long cardId = CommandParameterUtils.extractCardId(context);
         cardService.softDeleteCardById(cardId);
-        final ProcessingResult processingResult = cardsCommandHandler.processCommand(context);
+        final ProcessingResult processingResult = viewCardListCommandHandler.processCommand(context);
         return new ProcessingResult(processingResult.getResponse().withAlter(DELETION_TEXT));
     }
 
