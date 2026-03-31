@@ -18,7 +18,4 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User getReferenceById(final long id) {
-        return userRepository.getReferenceById(id);
-    }
 }

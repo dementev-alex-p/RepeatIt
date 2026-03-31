@@ -18,6 +18,7 @@ public class TrainingCard {
     @Id
     @Column(name = "training_card_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long trainingCardId;
 
     @Column(name = "training_id")

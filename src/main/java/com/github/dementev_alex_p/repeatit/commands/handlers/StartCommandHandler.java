@@ -2,6 +2,7 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.buttons.StartTrainingButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
@@ -47,7 +48,7 @@ public class StartCommandHandler implements CommandHandler {
                     context.userName()
             ));
             final List<CommandLine> commandLines = List.of(
-                    new CommandLine(CommandEnum.TRAINING),
+                    new CommandLine(new StartTrainingButton()),
                     new CommandLine(CommandEnum.VIEW_CARD_LIST),
                     new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
                     new CommandLine(CommandEnum.SETTINGS)
@@ -63,7 +64,7 @@ public class StartCommandHandler implements CommandHandler {
         return new ProcessingResult(
                 Collections.singletonList(new MessageToSend(
                     String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
-                    new CommandLine(CommandEnum.TRAINING),
+                    new CommandLine(new StartTrainingButton()),
                     new CommandLine(CommandEnum.VIEW_CARD_LIST),
                     new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
                 )),

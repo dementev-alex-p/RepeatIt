@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit;
+package com.github.dementev_alex_p.repeatit.telegram;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

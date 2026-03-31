@@ -21,7 +21,7 @@ public class EditionCardFrontSideHandler implements CommandHandler {
 
 
     private static final String TITLE_TEXT = """
-            <strong>Карточка</strong>
+            <strong>Редактирование карточки</strong>
             —————————————————————
             %s
             ✍ Введите новую обложку
@@ -42,7 +42,7 @@ public class EditionCardFrontSideHandler implements CommandHandler {
             final BackButton backButton = new BackButton(CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(cardId));
             return new ProcessingResult(RIResponse
                     .builder()
-                    .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
+                    .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForEdition(card)))
                     .availableCommands(List.of(new CommandLine(backButton)))
                     .isAnswerExcepted(true)
                     .messageMetaInfo(String.valueOf(cardId))
@@ -55,4 +55,5 @@ public class EditionCardFrontSideHandler implements CommandHandler {
             return viewCardCommandHandler.processCommand(context);
         }
     }
+
 }

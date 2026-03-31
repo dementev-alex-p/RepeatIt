@@ -1,8 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.users.User;
-import com.github.dementev_alex_p.repeatit.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +12,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CardCollectionService {
     private final CardCollectionRepository cardCollectionRepository;
-    private final UserService userService;
     private final CardService cardService;
 
     public List<CardCollection> findPublicAvailableForUser(final long userId, final int limit, final int offset) {
@@ -39,13 +36,16 @@ public class CardCollectionService {
 
     @Transactional
     public CardCollection forkCardCollection(CardCollection parentCollection, long userId) {
-        final User author = userService.getReferenceById(userId);
-
         final CardCollection newCardCollection = cardCollectionRepository.save(
-                new CardCollection(author.getId(), parentCollection.getName(), parentCollection.getId(), false)
+                new CardCollection(
+                        userId,
+                        parentCollection.getName(),
+                        parentCollection.getId(),
+                        false
+                )
         );
 
-        cardService.forkCards(parentCollection.getCards(), userId, newCardCollection.getId());
+        cardService.forkCards(parentCollection.getCards(), userId, newCardCollection);
         return newCardCollection;
     }
 
@@ -65,5 +65,15 @@ public class CardCollectionService {
                 .orElseThrow(() -> new RuntimeException("Collection not found"));
         collection.setName(title);
         cardCollectionRepository.save(collection);
+    }
+
+    public List<CardCollection> searchCollection(final long userId, final String query) {
+
+        return cardCollectionRepository.searchCollections(
+                userId,
+                "%" + query.trim().toLowerCase() + "%",
+                10
+        );
+
     }
 }

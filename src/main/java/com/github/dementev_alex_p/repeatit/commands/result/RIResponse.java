@@ -22,7 +22,5 @@ public class RIResponse {
         Доп информация. Служит для сохранения контекста
         */
         private final String messageMetaInfo;
-        @With
-        private final String alter;
 
 }

@@ -41,4 +41,13 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
             """
     )
     int findCountPublicAvailableForUser(final long userId);
+
+    @Query(""" 
+            SELECT c FROM CardCollection c WHERE c.authorId = :userId AND
+            LOWER(c.name) LIKE LOWER(:searchQuery)
+            AND c.isDeleted = false
+            ORDER BY c.updatedAt DESC
+            LIMIT :limit
+            """)
+    List<CardCollection> searchCollections(final long userId, final String searchQuery, final int limit);
 }

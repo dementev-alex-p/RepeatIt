@@ -24,7 +24,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
 
 
     private static final String TITLE_TEXT = """
-            <strong>Карточка</strong>
+            <strong>Редактирование карточки</strong>
             —————————————————————
             %s
             ✍ Введите новое содержание
@@ -52,7 +52,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
 
             return new ProcessingResult(RIResponse
                     .builder()
-                    .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
+                    .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForEdition(card)))
                     .availableCommands(commandLines)
                     .isAnswerExcepted(true)
                     .messageMetaInfo(String.valueOf(cardId))

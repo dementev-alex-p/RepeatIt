@@ -15,7 +15,6 @@ import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -59,13 +58,14 @@ public class TrainingCommandHandler implements CommandHandler {
             ⏳ вспомнили с трудом: %d
             ❓ не удалось вспомнить: %d
             """;
+    public static final String START_ACTION_CODE = "start";
+
 
     @Override
     public CommandEnum getCommand() {
         return CommandEnum.TRAINING;
     }
 
-    @Transactional
     @Override
     public ProcessingResult processCommand(final MessageContext context) {
 
@@ -73,7 +73,7 @@ public class TrainingCommandHandler implements CommandHandler {
             return startTraining(context);
         }
 
-        final Training training = trainingService.findCurrentTrainig(context.userId()).orElseThrow();
+        final Training training = trainingService.findCurrentTraining(context.userId()).orElseThrow();
 
         if (isFinishTrainingCommand(context)) {
             return finishTraining(training);
@@ -133,31 +133,30 @@ public class TrainingCommandHandler implements CommandHandler {
 
     private boolean isStartTrainingCommands(final MessageContext context) {
         return CommandParameterUtils.extractNullableAction(context)
-                .filter(action -> action.equals("start"))
+                .filter(action -> action.equals(START_ACTION_CODE))
                 .isPresent();
     }
 
     private boolean isFinishTrainingCommand(final MessageContext context) {
         return CommandParameterUtils.extractNullableAction(context)
-                .filter(action -> action.equals("end"))
+                .filter(action -> action.equals(FinishTrainingButton.ACTION_CODE))
                 .isPresent();
     }
 
     private void scorePreviousCardIfRequired(Training training, MessageContext context) {
         Optional.ofNullable(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE))
                 .map(Long::parseLong)
-                .map(cardId -> extractTrainingCardById(training, cardId))
+                .flatMap(cardId -> extractTrainingCardById(training, cardId))
                 .ifPresent(previousCard ->
                         trainingCardService.scoreRecall(previousCard, extractRecallScore(context))
                 );
     }
 
-    private TrainingCard extractTrainingCardById(final Training training, final long cardId) {
+    private Optional<TrainingCard> extractTrainingCardById(final Training training, final long cardId) {
         return training.getTrainingCards()
                 .stream()
                 .filter(tc -> tc.getCardId() == cardId)
-                .findAny()
-                .orElseThrow();
+                .findAny();
     }
 
     private Optional<TrainingCard> extractNextCard(final Training training) {
@@ -173,7 +172,7 @@ public class TrainingCommandHandler implements CommandHandler {
         final Card card = cardService.findCardById(trainingCard.getCardId());
 
         final List<TgMessage> previousMessages = tgMessageService
-                .findNotDeletedByUserIdAndCommand(training.getUserId(), getCommand())
+                .findNotDeletedByUserId(training.getUserId())
                 .stream()
                 .sorted(Comparator.comparing(TgMessage::getCreatedAt))
                 .toList();

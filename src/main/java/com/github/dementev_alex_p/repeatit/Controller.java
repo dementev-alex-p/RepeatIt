@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit;
 
+import com.github.dementev_alex_p.repeatit.telegram.TgBotConfig;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

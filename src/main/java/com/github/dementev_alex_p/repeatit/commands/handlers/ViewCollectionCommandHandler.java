@@ -20,7 +20,6 @@ import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +76,6 @@ public class ViewCollectionCommandHandler implements CommandHandler {
     }
 
     @Override
-    @Transactional
     public ProcessingResult processCommand(MessageContext context) {
         final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context))
                 .orElseThrow(() -> new RuntimeException("Коллекция не найдена"));
@@ -193,7 +191,7 @@ public class ViewCollectionCommandHandler implements CommandHandler {
         final int lastNumber = firstNumber + cards.size() - 1;
         final String cardText = cards
                 .stream()
-                .map(CardTextConverter::convertCardToTextForView)
+                .map(CardTextConverter::convertCardToShortText)
                 .collect(Collectors.joining(CARD_DELIMITER));
         return String.format(CARDS_VIEW, firstNumber, lastNumber, totalCardCount, cardText);
     }

@@ -15,7 +15,6 @@ import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +32,7 @@ public class ViewCollectionListCommandHandler implements CommandHandler {
     private static final String COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
             —————————————————————
-            Ниже коллекции c %d по %d (всего %d)
+            Ниже ваши коллекции c %d по %d (всего %d)
             
             %s
             💡 Для просмотра и изменения коллекции нажмите на ее номер:
@@ -41,10 +40,10 @@ public class ViewCollectionListCommandHandler implements CommandHandler {
     private static final String PUBLIC_COLLECTIONS_TEXT = """
             <strong>Публичные коллекции</strong>
             —————————————————————
-            Ниже коллекции c %d по %d (всего %d)
+            Ниже публичные коллекции c %d по %d (всего %d)
             
             %s
-            💡 Для просмотра коллекции нажмите на ее номер:
+            💡 Для просмотра карточек коллекции нажмите на ее номер:
             """;
     private static final String ZERO_COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
@@ -68,7 +67,6 @@ public class ViewCollectionListCommandHandler implements CommandHandler {
     }
 
     @Override
-    @Transactional
     public ProcessingResult processCommand(MessageContext context) {
         if (isPublicCollectionView(context)) {
             return viewPublicCollections(context);

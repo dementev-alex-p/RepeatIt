@@ -8,7 +8,6 @@ import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +34,6 @@ public class AdditionCardFromCollectionHandler implements CommandHandler {
     }
 
     @Override
-    @Transactional
     public ProcessingResult processCommand(MessageContext context) {
 
         final long collectionId = CommandParameterUtils.extractCollectionId(context);

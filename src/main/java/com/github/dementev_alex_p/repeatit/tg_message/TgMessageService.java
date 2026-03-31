@@ -26,9 +26,9 @@ public class TgMessageService {
         return tgMessageRepository.findLastByUserIdAndCreatedAtLessThanAndNotDeleted(userId, tgRestrictionDateTime);
     }
 
-    public List<TgMessage> findNotDeletedByUserIdAndCommand(final long userId, final CommandEnum command) {
+    public List<TgMessage> findNotDeletedByUserId(final long userId) {
         final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
-        return tgMessageRepository.findNotDeletedByUserIdAndCommandAndCreatedBefore(userId, command, tgRestrictionDateTime);
+        return tgMessageRepository.findNotDeletedByUserIdAndCommandAndCreatedBefore(userId, tgRestrictionDateTime);
     }
 
     public List<Integer> findMessageIdsForDeletion(final long userId) {

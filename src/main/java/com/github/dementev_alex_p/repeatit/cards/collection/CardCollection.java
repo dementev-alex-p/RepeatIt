@@ -1,7 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
-import com.github.dementev_alex_p.repeatit.users.User;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -38,7 +37,7 @@ public class CardCollection {
     @Column(name = "author_id")
     private long authorId;
 
-    @OneToMany(mappedBy = "cardCollectionId")
+    @OneToMany(mappedBy = "cardCollection")
     private List<Card> cards;
 
     @Nullable

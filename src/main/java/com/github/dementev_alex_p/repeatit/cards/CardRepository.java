@@ -49,18 +49,18 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> searchCards(long userId, String searchQuery, final int limit);
 
     @Query("""
-           SELECT c FROM Card c WHERE c.cardCollectionId = :collectionId AND c.deletedAt IS NULL ORDER BY c.createdAt LIMIT :limit OFFSET :offset
+           SELECT c FROM Card c WHERE c.cardCollection.id = :collectionId AND c.deletedAt IS NULL ORDER BY c.createdAt LIMIT :limit OFFSET :offset
            """)
     List<Card> findByCardCollectionId(final long collectionId, final int limit, final int offset);
 
     @Query("""
-            SELECT count(c) FROM Card c WHERE c.cardCollectionId = :collectionId AND c.deletedAt IS NULL
+            SELECT count(c) FROM Card c WHERE c.cardCollection.id = :collectionId AND c.deletedAt IS NULL
             """)
     Integer findCountByCardCollectionId(final long collectionId);
 
     @Modifying
     @Query("""
-            UPDATE Card c SET c.deletedAt = CURRENT TIMESTAMP  , c.updatedAt = CURRENT_TIMESTAMP WHERE c.cardCollectionId = :collectionId
+            UPDATE Card c SET c.deletedAt = CURRENT TIMESTAMP  , c.updatedAt = CURRENT_TIMESTAMP WHERE c.cardCollection.id = :collectionId
             """)
     void softDeleteCardsByCollectionId(final long collectionId);
 }

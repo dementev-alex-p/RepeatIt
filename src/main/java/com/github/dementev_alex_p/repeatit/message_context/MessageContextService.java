@@ -84,6 +84,9 @@ public class MessageContextService {
                     final CommandParameter cardIdParameter = CommandParameterUtils.createCardIdParameter(cardId);
                     return new Command(CommandEnum.VIEW_CARD, Map.of(cardIdParameter.getName(), cardIdParameter.getValue()));
                 }
+                if (command.startsWith(CommandEnum.EDIT_CARD_COLLECTION.getCode())) {
+                    return new Command(CommandEnum.EDIT_CARD_COLLECTION, new HashMap<>());
+                }
             }
 
             final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);

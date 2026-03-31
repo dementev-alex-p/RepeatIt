@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -21,7 +22,7 @@ public class Card {
     @Column(name = "card_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    @ToString.Exclude
+    @ToString.Include
     private Long id;
 
     @Column(name = "user_id")
@@ -29,8 +30,11 @@ public class Card {
     @ToString.Exclude
     private Long userId;
 
-    @Column(name = "card_collection_id")
-    private Long cardCollectionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_collection_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private CardCollection cardCollection;
 
     @Column(name = "front_side")
     @ToString.Exclude
@@ -63,10 +67,10 @@ public class Card {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    protected Card(final String frontSide, final String backSide, final long userId, final long cardCollectionId) {
+    protected Card(final String frontSide, final String backSide, final long userId, final CardCollection cardCollection) {
         this(userId, frontSide);
         this.backSide = backSide;
-        this.cardCollectionId = cardCollectionId;
+        this.cardCollection = cardCollection;
     }
 
     protected Card(final Long userId, final String frontSide) {

@@ -35,4 +35,14 @@ public class TrainingCardService {
         trainingCardRepository.saveAll(trainingCards);
         return trainingCards;
     }
+
+    public void delete(final TrainingCard trainingCard) {
+        trainingCardRepository.delete(trainingCard);
+    }
+
+    public void incrementOrderIndexForCards(final List<TrainingCard> cards) {
+        cards.forEach(card -> card.setOrderIndex(card.getOrderIndex() - 1));
+        trainingCardRepository.saveAll(cards);
+
+    }
 }

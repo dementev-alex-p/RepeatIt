@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,6 @@ public class CardService {
         return cardRepository.save(new Card(userId, message));
     }
 
-    @Transactional
-    public void updateBackSide(final long cardId, final String backSide) {
-        final Card card = cardRepository.findById(cardId).orElseThrow();
-        card.setBackSide(backSide);
-        cardRepository.save(card);
-    }
 
     @Transactional
     public void updateFrontSideByCardId(final long cardId, final String frontSide) {
@@ -48,14 +43,14 @@ public class CardService {
     }
 
 
-    public void forkCards(final List<Card> cards, final long userId, final long collectionId) {
+    public void forkCards(final List<Card> cards, final long userId, final CardCollection cardCollection) {
         final List<Card> cardsForSave = cards
                 .stream()
                 .map(card -> new Card(
                         card.getFrontSide(),
                         card.getBackSide(),
                         userId,
-                        collectionId
+                        cardCollection
                 )).toList();
         cardRepository.saveAll(cardsForSave);
     }
@@ -135,5 +130,12 @@ public class CardService {
 
     public void softDeleteCardsByCollectionId(final long collectionId) {
         cardRepository.softDeleteCardsByCollectionId(collectionId);
+    }
+
+    @Transactional
+    public void updateCardCollection(final long cardId, final CardCollection collection) {
+        final Card card = cardRepository.findById(cardId).orElseThrow();
+        card.setCardCollection(collection);
+        cardRepository.save(card);
     }
 }

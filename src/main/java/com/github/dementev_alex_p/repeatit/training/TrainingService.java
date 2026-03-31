@@ -18,18 +18,44 @@ public class TrainingService {
     private final TrainingCardService trainingCardService;
 
     public Training create(long userId, List<Card> cards){
-        findCurrentTrainig(userId).ifPresent(this::finishTraining);
+        findCurrentTraining(userId).ifPresent(this::finishTraining);
         final Training training = trainingRepository.save(new Training(userId, LocalDateTime.now()));
         final List<TrainingCard> trainingCards = trainingCardService.createCardsForTraining(cards, training.getId());
         training.setTrainingCards(trainingCards);
         return training;
     }
 
-    public Optional<Training> findCurrentTrainig(long userId) {
+    public Optional<Training> findCurrentTraining(long userId) {
         return trainingRepository.findByUserIdAndFinishedAtIsNull(userId);
     }
 
     public void finishTraining(final Training training) {
         trainingRepository.initFinishedAtByTrainingId(training.getId(), LocalDateTime.now());
+    }
+
+    public void deleteCardFromCurrentTraining(final Training training, final long cardId) {
+        final Optional<TrainingCard> cardForDeletion = training
+                .getTrainingCards()
+                .stream()
+                .filter(trainingCard -> trainingCard.getCardId() == cardId)
+                .findAny();
+        if (cardForDeletion.isEmpty()) {
+            return;
+        }
+
+        //удаляем из тренировки для актуализации кеша persistence context
+        final TrainingCard removedCard = training.getTrainingCards().remove(training.getTrainingCards().indexOf(cardForDeletion.get()));
+
+        //удаляем из бд
+        trainingCardService.delete(removedCard);
+
+        //После удаления карточки нужно обновить нумерацию всех последующих карточек в тренировке
+        final List<TrainingCard> trainingCardsForUpdate = training
+                .getTrainingCards()
+                .stream()
+                .filter(trainingCard -> trainingCard.getOrderIndex() > removedCard.getOrderIndex())
+                .toList();
+        trainingCardService.incrementOrderIndexForCards(trainingCardsForUpdate);
+
     }
 }

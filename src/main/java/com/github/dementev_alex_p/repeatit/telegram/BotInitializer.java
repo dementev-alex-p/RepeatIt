@@ -1,7 +1,6 @@
-package com.github.dementev_alex_p.repeatit;
+package com.github.dementev_alex_p.repeatit.telegram;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

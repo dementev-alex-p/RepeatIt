@@ -1,7 +1,5 @@
-package com.github.dementev_alex_p.repeatit;
+package com.github.dementev_alex_p.repeatit.telegram;
 
-import com.github.dementev_alex_p.repeatit.cards.Card;
-import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
@@ -17,22 +15,19 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResult;
-import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultArticle;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,26 +37,37 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
+
     private final String bootName;
     private final MessageContextService messageContextService;
     private final TgMessageService tgMessageService;
-    private final CardService cardService;
+    private final TelegramSearchHandler telegramSearchHandler;
 
     private final Map<CommandEnum, CommandHandler> handlersByCommand;
 
-    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, TgMessageService tgMessageService, CardService cardService, final List<CommandHandler> commandHandlers) {
+    public TelegramBot(final TgBotConfig tgBotConfig, final MessageContextService messageContextService, TgMessageService tgMessageService,  TelegramSearchHandler telegramSearchHandler, final List<CommandHandler> commandHandlers) {
         super(new DefaultBotOptions(), tgBotConfig.getToken());
         bootName = tgBotConfig.getName();
         this.messageContextService = messageContextService;
         this.tgMessageService = tgMessageService;
-        this.cardService = cardService;
+        this.telegramSearchHandler = telegramSearchHandler;
         handlersByCommand = commandHandlers
                 .stream()
                 .collect(Collectors.toMap(
                         CommandHandler::getCommand,
                         Function.identity()
                 ));
-
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.ipify.org"))
+                .build();
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("External IP: " + response.body());
     }
 
     @Override
@@ -72,7 +78,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasInlineQuery()) {
-            processSearchRequest(update.getInlineQuery());
+            telegramSearchHandler.search(this, update.getInlineQuery());
             return;
         }
         final MessageContext context = messageContextService.create(update);
@@ -83,7 +89,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void replyToUser(final MessageContext context, final ProcessingResult processingResult) {
         Optional
                 .ofNullable(context.callBackId())
-                .ifPresent(callbackId -> answerToCallback(callbackId, processingResult.getResponse()));
+                .ifPresent(callbackId -> answerToCallback(callbackId, processingResult.getAlter()));
         processingResult
                 .getMessagesToEdit()
                 .forEach(messageToEdit -> editMessage(context, messageToEdit));
@@ -108,8 +114,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         );
     }
 
-    private void answerToCallback(final String callbackId, @Nullable final RIResponse riResponse) {
-        final String alert = Optional.ofNullable(riResponse).map(RIResponse::getAlter).orElse(null);
+    private void answerToCallback(final String callbackId, @Nullable final String alert) {
+
         AnswerCallbackQuery answer = AnswerCallbackQuery
                 .builder()
                 .callbackQueryId(callbackId)
@@ -133,44 +139,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void processSearchRequest(final InlineQuery inlineQuery) {
-        final long userId = inlineQuery.getFrom().getId();
-        final String query = inlineQuery.getQuery();
-        final List<Card> cards = cardService.searchCard(userId, query);
-
-        // Конвертируем в формат Telegram
-        List<InlineQueryResult> inlineResults = cards
-                .stream()
-                .map(this::toInlineQueryResult)
-                .collect(Collectors.toList());
-
-        final AnswerInlineQuery answer = AnswerInlineQuery
-                .builder()
-                .inlineQueryId(inlineQuery.getId())
-                .results(inlineResults)
-                .cacheTime(10)
-                .isPersonal(true)
-                .build();
-        try {
-            execute(answer);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public InlineQueryResult toInlineQueryResult(Card card) {
-
-        final InputTextMessageContent messageContent = InputTextMessageContent.builder()
-                .messageText(String.format("/%s %d", CommandEnum.VIEW_CARD.getCode(), card.getId()))
-                .build();
-
-        return InlineQueryResultArticle.builder()
-                .id(card.getId().toString())
-                .title(card.getFrontSide())
-                .description(card.getBackSide())
-                .inputMessageContent(messageContent)
-                .build();
-    }
 
     private ProcessingResult processRequest(MessageContext context) {
         try {

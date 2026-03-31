@@ -74,8 +74,8 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult skipBackSide(final MessageContext context) {
-        final RIResponse response = viewCardCommandHandler.processCommand(context).getResponse();
-        return new ProcessingResult(response.withAlter(FINISH_CREATION_TEXT));
+        final ProcessingResult response = viewCardCommandHandler.processCommand(context);
+        return response.withAlter(FINISH_CREATION_TEXT);
     }
 
     private ProcessingResult createCardWithFrontSide(final MessageContext context, final String frontSideText) {
@@ -120,10 +120,11 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult saveCardBackSide(final MessageContext context, final long cardId, final String backSide) {
-        cardService.updateBackSide(cardId, backSide);
+        cardService.updateBackSideByCardId(cardId, backSide);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        final RIResponse response = viewCardCommandHandler.processCommand(context).getResponse();
-        return new ProcessingResult(response.withAlter(FINISH_CREATION_TEXT));
+        final MessageContext newContext = context.withCommand(CommandEnum.VIEW_CARD);
+        final ProcessingResult response = viewCardCommandHandler.processCommand(newContext);
+        return response.withAlter(FINISH_CREATION_TEXT);
     }
 
 
