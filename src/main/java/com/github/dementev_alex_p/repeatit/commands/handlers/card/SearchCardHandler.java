@@ -1,6 +1,7 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class SearchCardCommandHandler implements CommandHandler {
+public class SearchCardHandler implements CommandHandler {
     private static final String SEARCH_CARD_TEXT = """
             <strong>Поиск карточки</strong>
             Начните вводить содержимое карточки

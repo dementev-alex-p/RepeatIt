@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
@@ -8,6 +8,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCardButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardBackSideButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardFrontSideButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -22,7 +23,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ViewCardCommandHandler implements CommandHandler {
+public class ViewCardHandler implements CommandHandler {
 
     private static final String TITLE_TEXT = """
             <strong>Карточка</strong>

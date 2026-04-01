@@ -1,10 +1,11 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCardBackSideButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -20,7 +21,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class EditionCardBackSideHandler implements CommandHandler {
+public class EditCardBackSideHandler implements CommandHandler {
 
 
     private static final String TITLE_TEXT = """
@@ -30,7 +31,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
             ✍ Введите новое содержание
             """;
     private final CardService cardService;
-    private final ViewCardCommandHandler viewCardCommandHandler;
+    private final ViewCardHandler viewCardHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -62,7 +63,7 @@ public class EditionCardBackSideHandler implements CommandHandler {
             final long cardId = Long.parseLong(CommandParameterUtils.extractLastMessageMetaInfo(context));
             cardService.updateBackSideByCardId(cardId, context.message().get());
             context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-            return viewCardCommandHandler.processCommand(context);
+            return viewCardHandler.processCommand(context);
         }
     }
 }

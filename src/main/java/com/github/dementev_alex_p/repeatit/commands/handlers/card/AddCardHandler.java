@@ -1,9 +1,10 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -14,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class AdditionCardCommandHandler implements CommandHandler {
+public class AddCardHandler implements CommandHandler {
 
     private static final String ADD_CARD_TEXT = """
             <strong>Добавление карточек</strong>

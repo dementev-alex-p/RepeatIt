@@ -1,9 +1,10 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AdditionCardFromCollectionHandler implements CommandHandler {
+public class AddPublicCollectionHandler implements CommandHandler {
 
     private final CardCollectionService cardCollectionService;
 

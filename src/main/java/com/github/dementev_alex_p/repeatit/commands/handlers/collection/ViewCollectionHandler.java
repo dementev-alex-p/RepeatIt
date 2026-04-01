@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
@@ -14,6 +14,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.EditCollectionTitleB
 import com.github.dementev_alex_p.repeatit.commands.buttons.NextCardsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCardsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
-public class ViewCollectionCommandHandler implements CommandHandler {
+public class ViewCollectionHandler implements CommandHandler {
 
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
@@ -130,7 +131,7 @@ public class ViewCollectionCommandHandler implements CommandHandler {
         createPaginationLine(cards, page, totalCardCount, collection.getId())
                 .ifPresent(lines::add);
         lines.add(new CommandLine(new AddPublicCollectionButton(collection.getId())));
-        lines.add(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST, CommandParameterUtils.createActionParameter(ViewCollectionListCommandHandler.PUBLIC_COLLECTIONS_ACTION))));
+        lines.add(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST, CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION))));
         return new ProcessingResult(RIResponse
                 .builder()
                 .text(messageText)

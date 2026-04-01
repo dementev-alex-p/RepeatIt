@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
@@ -9,6 +9,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.NextCollectionsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCollectionsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class ViewCollectionListCommandHandler implements CommandHandler {
+public class ViewCollectionListHandler implements CommandHandler {
 
     private static final String COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
@@ -56,7 +57,7 @@ public class ViewCollectionListCommandHandler implements CommandHandler {
             —————————————————————
             Все публичные коллекции уже добавлены в вашу библиотеку!
             """;
-    private static final String VIEW_COLLECTION_TEXT = "%d. %s (карточек %d)\n";
+    private static final String VIEW_COLLECTION_TEXT = "\n%d. %s (карточек %d)\n";
     private static final int COUNT_COLLECTIONS_ON_PAGE = 5;
     public static final String PUBLIC_COLLECTIONS_ACTION = "public_collections";
 

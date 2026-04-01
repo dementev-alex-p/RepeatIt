@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
@@ -6,6 +6,7 @@ import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -22,7 +23,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class EditionCardCollectionHandler implements CommandHandler {
+public class EditCardCollectionHandler implements CommandHandler {
 
 
     private static final String TITLE_TEXT = """
@@ -34,7 +35,7 @@ public class EditionCardCollectionHandler implements CommandHandler {
             """;
     private final CardService cardService;
     private final CardCollectionService cardCollectionService;
-    private final ViewCardCommandHandler viewCardCommandHandler;
+    private final ViewCardHandler viewCardHandler;
     private final TgMessageService tgMessageService;
 
     @Override
@@ -71,7 +72,7 @@ public class EditionCardCollectionHandler implements CommandHandler {
         final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
         cardService.updateCardCollection(cardId, collection);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        return viewCardCommandHandler.processCommand(context);
+        return viewCardHandler.processCommand(context);
     }
 
     private Optional<Long> extractCollectionIdFromMessage(final MessageContext messageContext) {

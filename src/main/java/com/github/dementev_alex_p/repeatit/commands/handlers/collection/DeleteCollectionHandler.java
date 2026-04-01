@@ -1,7 +1,8 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DeletionCollectionCommandHandler implements CommandHandler {
+public class DeleteCollectionHandler implements CommandHandler {
 
 
     private static final String DELETED_TEXT = "Коллекция успешно удалена!";

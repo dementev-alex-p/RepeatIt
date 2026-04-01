@@ -143,7 +143,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 .isPresent();
     }
 
-    private void scorePreviousCardIfRequired(Training training, MessageContext context) {
+    private void scorePreviousCardIfRequired(final Training training, final MessageContext context) {
         Optional.ofNullable(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE))
                 .map(Long::parseLong)
                 .flatMap(cardId -> extractTrainingCardById(training, cardId))

@@ -26,7 +26,7 @@ public enum CommandEnum {
     ADD_PUBLIC_COLLECTION("add_cards_from_collection", "📚 Коллекции", null),
     SETTINGS("settings", "Настройки", null),
     DELETE_CARD("delete_card", "❌ Удалить", null),
-    EDIT_COLLECTION("edit_collection_title", "✍ Изменить название", null),
+    EDIT_COLLECTION_TITLE("edit_collection_title", "✍ Изменить название", null),
     DELETE_COLLECTION("delete_collection", "Удалить коллекцию", null),
     ;
 

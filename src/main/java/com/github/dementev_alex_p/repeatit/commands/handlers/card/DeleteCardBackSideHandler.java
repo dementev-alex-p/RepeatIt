@@ -1,7 +1,8 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
@@ -10,11 +11,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DeletionBackSideHandler implements CommandHandler {
+public class DeleteCardBackSideHandler implements CommandHandler {
 
 
     private final CardService cardService;
-    private final ViewCardCommandHandler viewCardCommandHandler;
+    private final ViewCardHandler viewCardHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -26,7 +27,7 @@ public class DeletionBackSideHandler implements CommandHandler {
         final long cardId = CommandParameterUtils.extractCardId(context);
         cardService.updateBackSideByCardId(cardId, null);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        return viewCardCommandHandler.processCommand(context);
+        return viewCardHandler.processCommand(context);
 
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class StartCommandHandler implements CommandHandler {
+public class ViewMainMenuHandler implements CommandHandler {
 
     private final UserService userService;
     private final CardService cardService;

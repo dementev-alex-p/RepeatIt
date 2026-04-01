@@ -1,7 +1,8 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class ViewCardListCommandHandler implements CommandHandler {
+public class ViewCardListHandler implements CommandHandler {
 
     private static final String YOUR_CARDS = """
             <strong>Карточки</strong>

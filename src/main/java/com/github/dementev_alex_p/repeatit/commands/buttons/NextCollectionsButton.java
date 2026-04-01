@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.buttons;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.handlers.ViewCollectionListCommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.handlers.collection.ViewCollectionListHandler;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 
 import java.util.Arrays;
@@ -14,7 +14,7 @@ public class NextCollectionsButton extends CommandButton {
                 ">>",
                 isPublic ? Arrays.asList(
                         CommandParameterUtils.createPageParameter(page),
-                        CommandParameterUtils.createActionParameter(ViewCollectionListCommandHandler.PUBLIC_COLLECTIONS_ACTION)
+                        CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION)
                 ) : Collections.singletonList(CommandParameterUtils.createPageParameter(page))
 
         );

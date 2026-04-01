@@ -1,10 +1,12 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.handlers.TrainingCommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -21,7 +23,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class DeletionCardCommandHandler implements CommandHandler {
+public class DeleteCardHandler implements CommandHandler {
 
 
     private static final String CONFIRM_TEXT = """
@@ -35,7 +37,7 @@ public class DeletionCardCommandHandler implements CommandHandler {
     private final CardService cardService;
     private final TrainingService trainingService;
     private final TrainingCommandHandler trainingCommandHandler;
-    private final ViewCardListCommandHandler viewCardListCommandHandler;
+    private final ViewCardListHandler viewCardListHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -86,7 +88,7 @@ public class DeletionCardCommandHandler implements CommandHandler {
             final ProcessingResult processingResult = trainingCommandHandler.processCommand(context);
             return processingResult.withAlter(DELETION_TEXT);
         } else {
-            final ProcessingResult processingResult = viewCardListCommandHandler.processCommand(context);
+            final ProcessingResult processingResult = viewCardListHandler.processCommand(context);
             return processingResult.withAlter(DELETION_TEXT);
         }
 

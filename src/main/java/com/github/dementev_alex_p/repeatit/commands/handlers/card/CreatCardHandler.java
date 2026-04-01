@@ -1,10 +1,11 @@
-package com.github.dementev_alex_p.repeatit.commands.handlers;
+package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.SkipBackSideButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
 import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
@@ -20,7 +21,7 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class CreationCardCommandHandler implements CommandHandler {
+public class CreatCardHandler implements CommandHandler {
 
     private static final String TITLE_TEXT = """
             <strong>Создание карточки</strong>
@@ -41,7 +42,7 @@ public class CreationCardCommandHandler implements CommandHandler {
 
     private final CardService cardService;
     private final TgMessageService tgMessageService;
-    private final ViewCardCommandHandler viewCardCommandHandler;
+    private final ViewCardHandler viewCardHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -74,7 +75,7 @@ public class CreationCardCommandHandler implements CommandHandler {
     }
 
     private ProcessingResult skipBackSide(final MessageContext context) {
-        final ProcessingResult response = viewCardCommandHandler.processCommand(context);
+        final ProcessingResult response = viewCardHandler.processCommand(context);
         return response.withAlter(FINISH_CREATION_TEXT);
     }
 
@@ -123,7 +124,7 @@ public class CreationCardCommandHandler implements CommandHandler {
         cardService.updateBackSideByCardId(cardId, backSide);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
         final MessageContext newContext = context.withCommand(CommandEnum.VIEW_CARD);
-        final ProcessingResult response = viewCardCommandHandler.processCommand(newContext);
+        final ProcessingResult response = viewCardHandler.processCommand(newContext);
         return response.withAlter(FINISH_CREATION_TEXT);
     }
 
