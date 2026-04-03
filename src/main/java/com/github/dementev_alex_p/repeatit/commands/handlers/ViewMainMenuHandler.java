@@ -4,17 +4,13 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.StartTrainingButton;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToSend;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
-import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import com.github.dementev_alex_p.repeatit.users.User;
 import com.github.dementev_alex_p.repeatit.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -23,7 +19,6 @@ public class ViewMainMenuHandler implements CommandHandler {
 
     private final UserService userService;
     private final CardService cardService;
-    private final TgMessageService tgMessageService;
 
     private static final String GREETING = """
             %s, приветствую!
@@ -37,11 +32,11 @@ public class ViewMainMenuHandler implements CommandHandler {
 
     @Override
     public CommandEnum getCommand() {
-        return CommandEnum.START;
+        return CommandEnum.MAIN_MENU;
     }
 
     @Override
-    public ProcessingResult processCommand(final MessageContext context) {
+    public CommandResponse processCommand(final MessageContext context) {
         if (userService.findUserById(context.userId()).isEmpty()) {
             userService.saveUser(new User(
                     context.userId(),
@@ -53,24 +48,23 @@ public class ViewMainMenuHandler implements CommandHandler {
                     new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
                     new CommandLine(CommandEnum.SETTINGS)
             );
-            return new ProcessingResult(RIResponse
+            return CommandResponse
                     .builder()
                     .text(String.format(GREETING, context.userName()))
                     .availableCommands(commandLines)
-                    .build());
+                    .build();
         }
         final int countForDailyTraining = cardService.findCountForDailyTrainingByUserId(context.userId());
-
-        return new ProcessingResult(
-                Collections.singletonList(new MessageToSend(
-                    String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining),
-                    new CommandLine(new StartTrainingButton()),
-                    new CommandLine(CommandEnum.VIEW_CARD_LIST),
-                    new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
-                )),
-                Collections.emptyList(),
-                tgMessageService.findMessageIdsForDeletion(context.userId())
+        final List<CommandLine> commandLines = List.of(new CommandLine(new StartTrainingButton()),
+                new CommandLine(CommandEnum.VIEW_CARD_LIST),
+                new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
         );
+        return CommandResponse
+                .builder()
+                .text(String.format(GREETING, context.userName()) + String.format(DAILY_CARD_COUNT, countForDailyTraining))
+                .availableCommands(commandLines)
+                .isChatClearRequired(true)
+                .build();
     }
 
 

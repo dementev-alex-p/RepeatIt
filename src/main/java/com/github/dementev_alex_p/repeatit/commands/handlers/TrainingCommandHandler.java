@@ -6,8 +6,6 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
-import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
-import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import com.github.dementev_alex_p.repeatit.training.Training;
 import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
@@ -26,10 +24,7 @@ import java.util.stream.Stream;
 @Component
 @RequiredArgsConstructor
 public class TrainingCommandHandler implements CommandHandler {
-    public final TrainingService trainingService;
-    public final TrainingCardService trainingCardService;
-    public final CardService cardService;
-    public final TgMessageService tgMessageService;
+
     private static final String START_TRAINING = """
             <strong>Тренировка</strong>
             —————————————————————
@@ -59,7 +54,11 @@ public class TrainingCommandHandler implements CommandHandler {
             ❓ не удалось вспомнить: %d
             """;
     public static final String START_ACTION_CODE = "start";
+    public static final String SHOW_BACK_SIDE = "show_back_side";
 
+    public final TrainingService trainingService;
+    public final TrainingCardService trainingCardService;
+    public final CardService cardService;
 
     @Override
     public CommandEnum getCommand() {
@@ -67,13 +66,14 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(final MessageContext context) {
+    public CommandResponse processCommand(final MessageContext context) {
 
         if (isStartTrainingCommands(context)) {
             return startTraining(context);
         }
 
-        final Training training = trainingService.findCurrentTraining(context.userId()).orElseThrow();
+        final Training training = trainingService.findCurrentTraining(context.userId())
+                .orElseThrow(() -> new RuntimeException("Не удалось найти тренировку для завершения"));
 
         if (isFinishTrainingCommand(context)) {
             return finishTraining(training);
@@ -82,9 +82,6 @@ public class TrainingCommandHandler implements CommandHandler {
         if (isShowBackSideCommand(context)) {
             return showBackSide(context, training);
         }
-//        if (isHideBackSideCommand(context)) {
-//            return showBackSide(context, training, false);
-//        }
 
         scorePreviousCardIfRequired(training, context);
 
@@ -97,7 +94,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return continueTraining(training, nextCard.get());
     }
 
-    private ProcessingResult showBackSide(final MessageContext context, final Training training) {
+    private CommandResponse showBackSide(final MessageContext context, final Training training) {
         final long cardId = Long.parseLong(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE));
         final Card card = cardService.findCardById(cardId);
 
@@ -111,23 +108,16 @@ public class TrainingCommandHandler implements CommandHandler {
                 CardTextConverter.forTraining(card, true)
         );
 
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(newCardText)
                 .availableCommands(commandLines)
-                .build()
-        );
-    }
-
-    private boolean isHideBackSideCommand(final MessageContext context) {
-        return CommandParameterUtils.extractNullableAction(context)
-                .filter(action -> action.equals("hide_back_side"))
-                .isPresent();
+                .build();
     }
 
     private boolean isShowBackSideCommand(final MessageContext context) {
         return CommandParameterUtils.extractNullableAction(context)
-                .filter(action -> action.equals("show_back_side"))
+                .filter(action -> action.equals(SHOW_BACK_SIDE))
                 .isPresent();
     }
 
@@ -168,34 +158,26 @@ public class TrainingCommandHandler implements CommandHandler {
                 .findFirst();
     }
 
-    private ProcessingResult continueTraining(final Training training, final TrainingCard trainingCard) {
+    private CommandResponse continueTraining(final Training training, final TrainingCard trainingCard) {
         final Card card = cardService.findCardById(trainingCard.getCardId());
-
-        final List<TgMessage> previousMessages = tgMessageService
-                .findNotDeletedByUserId(training.getUserId())
-                .stream()
-                .sorted(Comparator.comparing(TgMessage::getCreatedAt))
-                .toList();
 
         final int currentOrderIndex = trainingCard.getOrderIndex() - 1;
         final int totalCardsCount = training.getTrainingCards().size();
         final int percentage = currentOrderIndex * 100 / totalCardsCount;
-        final MessageToEdit statisticMessage = new MessageToEdit(
-                previousMessages.get(previousMessages.size() - 2).getTgMessageId(),
-                String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)),
-                Collections.singletonList(new CommandLine(new FinishTrainingButton()))
-        );
 
-        final MessageToEdit newCardMessage = new MessageToEdit(
-                previousMessages.get(previousMessages.size() - 1).getTgMessageId(),
-                String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardTextConverter.forTraining(card, false)),
-                createCommandLineForCard(card)
-        );
-        return new ProcessingResult(
-                Collections.emptyList(),
-                Arrays.asList(newCardMessage, statisticMessage),
-                Collections.emptyList()
-        );
+        final CommandResponse statisticMessage = CommandResponse
+                .builder()
+                .text(String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)))
+                .availableCommands(Collections.singletonList(new CommandLine(new FinishTrainingButton())))
+                .build();
+
+        return CommandResponse
+                .builder()
+                .text(String.format(NEXT_CARD_TEXT, trainingCard.getOrderIndex(), CardTextConverter.forTraining(card, false)))
+                .availableCommands(createCommandLineForCard(card))
+                .trainingStatisticMessage(statisticMessage)
+                .build();
+
     }
 
     private String createProgressBar(final int progressPercentage) {
@@ -210,7 +192,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return progress.toString();
     }
 
-    private ProcessingResult finishTraining(Training training) {
+    private CommandResponse finishTraining(Training training) {
         trainingService.finishTraining(training);
         final List<TrainingCard> scoredCards = training
                 .getTrainingCards()
@@ -230,25 +212,19 @@ public class TrainingCommandHandler implements CommandHandler {
                 statistic.getOrDefault(RecallScoreEnum.DIFFICULT_RECALL, 0L),
                 statistic.getOrDefault(RecallScoreEnum.FAIL_RECALL, 0L)
         );
-        final MessageToSend messageToSend = new MessageToSend(statisticText, new CommandLine(CommandEnum.START));
-
-        return new ProcessingResult(
-                Collections.singletonList(messageToSend),
-                Collections.emptyList(),
-                tgMessageService.findMessageIdsForDeletion(training.getUserId())
-        );
+        return CommandResponse
+                .builder()
+                .text(statisticText)
+                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))))
+                .isChatClearRequired(true)
+                .build();
     }
 
-    private ProcessingResult startTraining(final MessageContext context) {
+    private CommandResponse startTraining(final MessageContext context) {
         final List<Card> cardsForTraining = findCardsForTraining(context.userId());
         if (CollectionUtils.isEmpty(cardsForTraining)) {
-            return new ProcessingResult(new MessageToSend(
-                    NOT_FOUND_CARDS_FOR_TRAINING,
-                    new CommandLine(CommandEnum.ADD_CARD),
-                    new CommandLine(CommandEnum.START)
-            ));
+            return sendNotFoundCardResponse();
         }
-
         final Training training = trainingService.create(context.userId(), cardsForTraining);
         final long firstCardId = extractNextCard(training).map(TrainingCard::getCardId).orElseThrow();
         final Card firstCard = cardsForTraining
@@ -257,20 +233,31 @@ public class TrainingCommandHandler implements CommandHandler {
                 .findAny()
                 .orElseThrow();
         final int totalCardCount = training.getTrainingCards().size();
-        final MessageToSend startTrainingMessage = new MessageToSend(
-                String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)),
-                new CommandLine(new FinishTrainingButton())
-        );
-        final MessageToSend firstCardMessage = new MessageToSend(
-                String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)),
-                createCommandLineForCard(firstCard)
-        );
 
-        return new ProcessingResult(
-                List.of(startTrainingMessage, firstCardMessage),
-                Collections.emptyList(),
-                tgMessageService.findMessageIdsForDeletion(context.userId())
-        );
+        final CommandResponse statisticMessage = CommandResponse
+                .builder()
+                .text(String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)))
+                .availableCommands(List.of(new CommandLine(new FinishTrainingButton())))
+                .build();
+
+       return CommandResponse
+               .builder()
+               .text(String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)))
+               .availableCommands(createCommandLineForCard(firstCard))
+               .trainingStatisticMessage(statisticMessage)
+               .isChatClearRequired(true)
+               .build();
+    }
+
+    private CommandResponse sendNotFoundCardResponse() {
+        return CommandResponse
+                .builder()
+                .text(NOT_FOUND_CARDS_FOR_TRAINING)
+                .availableCommands(List.of(
+                        new CommandLine(new CommandButton(CommandEnum.ADD_CARD)),
+                        new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
+                ))
+                .build();
     }
 
     private List<CommandLine> createCommandLineForCard(final Card card) {

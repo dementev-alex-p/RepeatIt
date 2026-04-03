@@ -10,8 +10,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardCollectionBu
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardFrontSideButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -43,9 +42,9 @@ public class ViewCardHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
 
-        final long cardId = CommandParameterUtils.extractCardId(context);
+        final long cardId = extractCardIdFromContext(context);
         final Card card = cardService.findCardById(cardId);
         final List<CommandLine> commandLines = List.of(
                 createEditionCommandLine(card.getId()),
@@ -53,12 +52,23 @@ public class ViewCardHandler implements CommandHandler {
                 createBackButtonLine(context)
         );
 
-        return new ProcessingResult(RIResponse.builder()
+        return CommandResponse
+                .builder()
                 .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
                 .availableCommands(commandLines)
-                .messageMetaInfo(String.valueOf(cardId))
-                .build()
-        );
+                .parameters(List.of(CommandParameterUtils.createCardIdParameter(cardId)))
+                .build();
+    }
+
+    private long extractCardIdFromContext(final MessageContext context) {
+        boolean isViewAfterSearch = context
+                .message()
+                .filter(m -> m.startsWith("/" + CommandEnum.VIEW_CARD.getCode()))
+                .isPresent();
+        if (isViewAfterSearch) {
+            return Long.parseLong(context.message().get().substring(CommandEnum.VIEW_CARD.getCode().length() + 1).trim());
+        }
+        return CommandParameterUtils.extractCardId(context);
     }
 
     private CommandLine createBackButtonLine(final MessageContext context) {

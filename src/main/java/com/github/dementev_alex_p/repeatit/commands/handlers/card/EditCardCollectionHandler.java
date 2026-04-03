@@ -8,8 +8,7 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
@@ -44,7 +43,7 @@ public class EditCardCollectionHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         final Optional<Long> chosenCollectionId = extractCollectionIdFromMessage(context);
         final boolean isCollectionAlreadyChosen = chosenCollectionId.isPresent();
         if (isCollectionAlreadyChosen) {
@@ -52,27 +51,28 @@ public class EditCardCollectionHandler implements CommandHandler {
         }
         final Card card = cardService.findCardById(CommandParameterUtils.extractCardId(context));
 
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
                 .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.SEARCH))))
-                .messageMetaInfo(String.valueOf(card.getId()))
-                .build()
-        );
+                .build();
     }
 
-    private ProcessingResult updateCardCollection(final long collectionId, final MessageContext context) {
+    private CommandResponse updateCardCollection(final long collectionId, final MessageContext context) {
         final Long cardId = tgMessageService
                 .findLastByUserId(context.userId())
                 .filter(message -> CommandEnum.EDIT_CARD_COLLECTION == message.getCommand())
-                .map(TgMessage::getMessageMetaInfo)
-                .map(Long::parseLong)
+                .map(TgMessage::getCommandParameters)
+                .flatMap(CommandParameterUtils::extractCardId)
                 .orElseThrow();
 
         final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
         cardService.updateCardCollection(cardId, collection);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-        return viewCardHandler.processCommand(context);
+        return viewCardHandler
+                .processCommand(context)
+                .withCommand(CommandEnum.VIEW_CARD)
+                .withParameters(CommandParameterUtils.convert(context.commandParameters()));
     }
 
     private Optional<Long> extractCollectionIdFromMessage(final MessageContext messageContext) {

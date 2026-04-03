@@ -1,71 +1,84 @@
 package com.github.dementev_alex_p.repeatit.tg_message;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
-@Table(name = "tg_message")
+@Table(name = "message")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter(AccessLevel.PROTECTED)
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TgMessage {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "message_id")
+    private long messageId;
+
     @Column(name = "tg_message_id")
     @EqualsAndHashCode.Include
-    @ToString.Exclude
+    @ToString.Include
     private int tgMessageId;
 
     @Column(name = "user_id")
-    @ToString.Exclude
+    @ToString.Include
     private long userId;
 
     @Column(name = "chat_id")
-    @ToString.Exclude
+    @ToString.Include
     private long chatId;
 
     @Column(name = "command")
     @NotNull
-    @ToString.Exclude
+    @ToString.Include
     @Enumerated(EnumType.STRING)
     private CommandEnum command;
 
     @Column(name = "message_text")
     @NotNull
-    @ToString.Exclude
+    @ToString.Include
     private String messageText;
 
     @Column(name = "created_at")
     @NotNull
-    @ToString.Exclude
+    @ToString.Include
     private LocalDateTime createdAt;
 
-    @Column(name = "is_deleted")
-    @ToString.Exclude
-    private boolean isDeleted;
+    @Column(name = "deleted_at")
+    @ToString.Include
+    private LocalDateTime deletedAt;
 
     @Column(name = "is_answer_excepted")
-    @ToString.Exclude
+    @ToString.Include
     private boolean isAnswerExcepted;
 
-    @Column(name = "message_meta_info")
-    @ToString.Exclude
-    private String messageMetaInfo;
+    @Column(name = "is_chat_clear_required")
+    @ToString.Include
+    private boolean isChatClearRequired;
 
-    public TgMessage(int tgMessageId, long userId, Long chatId, CommandEnum command, String text, boolean isAnswerExcepted, String messageMetaInfo) {
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "parameters", columnDefinition = "jsonb")
+    private List<CommandParameter> commandParameters;
+
+    public TgMessage(int tgMessageId, long userId, long chatId, CommandEnum command, String text, boolean isAnswerExcepted, final List<CommandParameter> commandParameters, boolean isChatClearRequired) {
+        this.tgMessageId = tgMessageId;
         this.messageText = text;
         this.command = command;
         this.chatId = chatId;
         this.userId = userId;
-        this.tgMessageId = tgMessageId;
         this.createdAt = LocalDateTime.now();
-        this.isDeleted = false;
         this.isAnswerExcepted = isAnswerExcepted;
-        this.messageMetaInfo = messageMetaInfo;
+        this.isChatClearRequired = isChatClearRequired;
+        this.commandParameters = commandParameters;
     }
 }

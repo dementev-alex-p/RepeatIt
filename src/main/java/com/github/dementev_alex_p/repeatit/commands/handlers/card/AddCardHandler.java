@@ -6,8 +6,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,7 @@ public class AddCardHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         final List<CommandLine> commandLines = Arrays.asList(
                 new CommandLine(Arrays.asList(
                         new CommandButton(CommandEnum.CREATE_CARD),
@@ -40,11 +39,10 @@ public class AddCardHandler implements CommandHandler {
                 )),
                 new CommandLine(new BackButton(CommandEnum.VIEW_CARD_LIST))
         );
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(ADD_CARD_TEXT)
                 .availableCommands(commandLines)
-                .build()
-        );
+                .build();
     }
 }

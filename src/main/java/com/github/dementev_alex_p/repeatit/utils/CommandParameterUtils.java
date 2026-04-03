@@ -2,8 +2,14 @@ package com.github.dementev_alex_p.repeatit.utils;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import org.flywaydb.core.internal.util.CollectionsUtils;
+import org.springframework.util.CollectionUtils;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CommandParameterUtils {
 
@@ -56,9 +62,29 @@ public class CommandParameterUtils {
                 .orElseThrow();
     }
 
+    public static Optional<Long> extractCardId(final List<CommandParameter> commandParameters) {
+        if (CollectionUtils.isEmpty(commandParameters)) {
+            return Optional.empty();
+        }
+        return commandParameters
+                .stream()
+                .filter(p -> p.getName().equals(CARD_PARAMETER_CODE))
+                .map(CommandParameter::getValue)
+                .map(Long::parseLong)
+                .findAny();
+    }
+
     public static String extractLastMessageMetaInfo(final MessageContext context) {
         return Optional
                 .ofNullable(context.commandParameters().get(LAST_MESSAGE_META_INFO))
                 .orElseThrow();
+    }
+
+    public static List<CommandParameter> convert(final Map<String, String> parameters) {
+        return parameters
+                .entrySet()
+                .stream()
+                .map(e -> new CommandParameter(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
     }
 }

@@ -7,8 +7,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCardBackSideButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
@@ -39,7 +38,7 @@ public class EditCardBackSideHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         if (context.message().isEmpty()) {
             long cardId = CommandParameterUtils.extractCardId(context);
             final Card card = cardService.findCardById(cardId);
@@ -51,19 +50,16 @@ public class EditCardBackSideHandler implements CommandHandler {
                     CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(cardId)
             )));
 
-            return new ProcessingResult(RIResponse
+            return CommandResponse
                     .builder()
                     .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForEdition(card)))
                     .availableCommands(commandLines)
                     .isAnswerExcepted(true)
-                    .messageMetaInfo(String.valueOf(cardId))
-                    .build()
-            );
+                    .build();
         } else {
-            final long cardId = Long.parseLong(CommandParameterUtils.extractLastMessageMetaInfo(context));
+            final long cardId = CommandParameterUtils.extractCardId(context);
             cardService.updateBackSideByCardId(cardId, context.message().get());
-            context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
-            return viewCardHandler.processCommand(context);
+            return viewCardHandler.processCommand(context).withCommand(CommandEnum.VIEW_CARD);
         }
     }
 }

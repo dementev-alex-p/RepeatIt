@@ -11,9 +11,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCollectionsB
 import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.MessageToEdit;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
@@ -62,13 +60,14 @@ public class ViewCollectionListHandler implements CommandHandler {
     public static final String PUBLIC_COLLECTIONS_ACTION = "public_collections";
 
     private final CardCollectionService cardCollectionService;
+
     @Override
     public CommandEnum getCommand() {
         return CommandEnum.VIEW_COLLECTION_LIST;
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         if (isPublicCollectionView(context)) {
             return viewPublicCollections(context);
         } else {
@@ -76,7 +75,7 @@ public class ViewCollectionListHandler implements CommandHandler {
         }
     }
 
-    private ProcessingResult viewUserCollections(final MessageContext context) {
+    private CommandResponse viewUserCollections(final MessageContext context) {
         final int userCollectionsCount = cardCollectionService.findCountByAuthorId(context.userId());
         if (userCollectionsCount == 0) {
             return sendZeroCollectionMessage();
@@ -93,38 +92,36 @@ public class ViewCollectionListHandler implements CommandHandler {
                     createNumberButtons(userCollections, userCollectionsCount, page, false),
                     new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                     new CommandLine(new PublicCollectionsButton()),
-                    new CommandLine(new CommandButton(CommandEnum.START))
+                    new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
             );
 
-            return new ProcessingResult(
-                    RIResponse
-                            .builder()
-                            .text(String.format(COLLECTIONS_TEXT, firstNumber, lastNumber, userCollectionsCount, covertToString(userCollections)))
-                            .availableCommands(commandLines)
-                            .build()
-            );
+            return CommandResponse
+                    .builder()
+                    .text(String.format(COLLECTIONS_TEXT, firstNumber, lastNumber, userCollectionsCount, covertToString(userCollections)))
+                    .availableCommands(commandLines)
+                    .build();
         }
     }
 
-    private ProcessingResult sendZeroCollectionMessage() {
+    private CommandResponse sendZeroCollectionMessage() {
         final List<CommandLine> lines = List.of(
                 new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                 new CommandLine(new PublicCollectionsButton()),
-                new CommandLine(new CommandButton(CommandEnum.START))
+                new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
         );
-        return new ProcessingResult(RIResponse.builder().text(ZERO_COLLECTIONS_TEXT).availableCommands(lines).build());
+        return CommandResponse.builder().text(ZERO_COLLECTIONS_TEXT).availableCommands(lines).build();
     }
 
-    private ProcessingResult viewPublicCollections(final MessageContext context) {
+    private CommandResponse viewPublicCollections(final MessageContext context) {
         final int publicCollectionsCount = cardCollectionService.findCountPublicAvailableForUser(context.userId());
         if (publicCollectionsCount == 0) {
-            return new ProcessingResult(new MessageToEdit(
-                    MessageToEdit.LAST_MESSAGE,
-                    ZERO_PUBLIC_COLLECTIONS_TEXT,
-                    new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST)))
-            );
+            return CommandResponse
+                    .builder()
+                    .text(ZERO_PUBLIC_COLLECTIONS_TEXT)
+                    .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))))
+                    .build();
         }
-        final int page =  CommandParameterUtils.extractPage(context);
+        final int page = CommandParameterUtils.extractPage(context);
         final List<CardCollection> publicCollections = cardCollectionService.findPublicAvailableForUser(
                 context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE
         );
@@ -136,13 +133,11 @@ public class ViewCollectionListHandler implements CommandHandler {
                 new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
         );
 
-        return new ProcessingResult(
-                RIResponse
-                        .builder()
-                        .text(String.format(PUBLIC_COLLECTIONS_TEXT, firstNumber, lastNumber, publicCollectionsCount, covertToString(publicCollections)))
-                        .availableCommands(commandLines)
-                        .build()
-        );
+        return CommandResponse
+                .builder()
+                .text(String.format(PUBLIC_COLLECTIONS_TEXT, firstNumber, lastNumber, publicCollectionsCount, covertToString(publicCollections)))
+                .availableCommands(commandLines)
+                .build();
     }
 
     private boolean isPublicCollectionView(final MessageContext context) {

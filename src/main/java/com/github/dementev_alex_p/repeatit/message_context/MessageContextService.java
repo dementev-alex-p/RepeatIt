@@ -4,12 +4,10 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
-import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
@@ -45,8 +43,8 @@ public class MessageContextService {
 
         final Optional<String> data = Optional.ofNullable(update.getCallbackQuery()).map(CallbackQuery::getData);
 
-        final Optional<String> message = Optional.ofNullable(update.getMessage()).map(Message::getText);
-        final Optional<Integer> messageId = Optional.ofNullable(update.getMessage()).map(Message::getMessageId);
+        final Optional<String> message = Optional.ofNullable(update.getMessage()).map(org.telegram.telegrambots.meta.api.objects.Message::getText);
+        final Optional<Integer> messageId = Optional.ofNullable(update.getMessage()).map(org.telegram.telegrambots.meta.api.objects.Message::getMessageId);
         final Command command = determinateCommand(data, message, userId);
         return new MessageContext(
                 userId,
@@ -76,13 +74,11 @@ public class MessageContextService {
         if (message.isPresent()) {
             if (message.get().startsWith("/")) {
                 final String command = message.get().substring(1);
-                if (command.equals(CommandEnum.START.getCode())) {
-                    return new Command(CommandEnum.START, new HashMap<>());
+                if (command.equals(CommandEnum.MAIN_MENU.getCode())) {
+                    return new Command(CommandEnum.MAIN_MENU, new HashMap<>());
                 }
                 if (command.startsWith(CommandEnum.VIEW_CARD.getCode())) {
-                    final long cardId = Long.parseLong(command.substring(CommandEnum.VIEW_CARD.getCode().length()).trim());
-                    final CommandParameter cardIdParameter = CommandParameterUtils.createCardIdParameter(cardId);
-                    return new Command(CommandEnum.VIEW_CARD, Map.of(cardIdParameter.getName(), cardIdParameter.getValue()));
+                    return new Command(CommandEnum.VIEW_CARD, new HashMap<>());
                 }
                 if (command.startsWith(CommandEnum.EDIT_CARD_COLLECTION.getCode())) {
                     return new Command(CommandEnum.EDIT_CARD_COLLECTION, new HashMap<>());
@@ -92,9 +88,10 @@ public class MessageContextService {
             final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);
             final boolean isExceptedAnswer = lastMessage.filter(TgMessage::isAnswerExcepted).isPresent();
             if (isExceptedAnswer) {
-                final Map<String, String> parameters = new HashMap<>();
-                parameters.put(CommandParameterUtils.LAST_MESSAGE_META_INFO, lastMessage.get().getMessageMetaInfo());
-                return new Command(lastMessage.get().getCommand(), parameters);
+                return new Command(
+                        lastMessage.get().getCommand(),
+                        extractCommandParametersFromMessage(lastMessage.get())
+                );
             }
             //Если мы не ждали ответа значит это создание новой карточки
             return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
@@ -115,5 +112,14 @@ public class MessageContextService {
         }
     }
 
+    private Map<String, String> extractCommandParametersFromMessage(final TgMessage tgMessage) {
+        if (tgMessage.getCommandParameters() == null) {
+            return new HashMap<>();
+        }
+        return tgMessage
+                .getCommandParameters()
+                .stream()
+                .collect(Collectors.toMap(CommandParameter::getName, CommandParameter::getValue));
+    }
     private record Command(CommandEnum commandEnum, Map<String, String> parameters) { }
 }

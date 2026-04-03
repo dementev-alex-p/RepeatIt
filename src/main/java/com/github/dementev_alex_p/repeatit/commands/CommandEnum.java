@@ -8,9 +8,9 @@ import java.util.stream.Stream;
 
 @AllArgsConstructor
 public enum CommandEnum {
-    START("start", "Главнове меню", null),
+    MAIN_MENU("start", "Главнове меню", null),
     TRAINING("training", "\uD83C\uDFC6 Тренировка", null),
-    VIEW_CARD_LIST("view_card_list", "📘 Карточки",  CommandParameterUtils.createPageParameter(1)),
+    VIEW_CARD_LIST("view_card_list", "📘 Карточки",  null),
     VIEW_CARD("view_card", "✍ Изменить", null),
     ADD_CARD("add_card", "➕ Добавить", null),
     SEARCH("search_card", "🔍︎ Поиск", null),

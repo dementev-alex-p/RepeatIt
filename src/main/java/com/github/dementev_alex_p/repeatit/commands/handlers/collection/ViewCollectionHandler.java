@@ -16,8 +16,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCardsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
@@ -39,10 +38,9 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
             —————————————————————
-            Название: %s
+            <strong>Название:</strong> %s
             
             %s
-            
             %s
             """;
     //Прийти к этому
@@ -77,7 +75,7 @@ public class ViewCollectionHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context))
                 .orElseThrow(() -> new RuntimeException("Коллекция не найдена"));
         final int page = CommandParameterUtils.extractPage(context);
@@ -93,7 +91,7 @@ public class ViewCollectionHandler implements CommandHandler {
 
     }
 
-    private ProcessingResult viewLocalCollection(
+    private CommandResponse viewLocalCollection(
             final CardCollection collection, final int page, final int totalCardCount, final List<Card> cards
     ) {
 
@@ -110,15 +108,14 @@ public class ViewCollectionHandler implements CommandHandler {
                 new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
         ).toList();
 
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(messageText)
                 .availableCommands(commandLines)
-                .build()
-        );
+                .build();
     }
 
-    private ProcessingResult viewPublicCollection(
+    private CommandResponse viewPublicCollection(
             final CardCollection collection, final int page, final int totalCardCount, final List<Card> cards
     ) {
         final String messageText = String.format(
@@ -132,11 +129,11 @@ public class ViewCollectionHandler implements CommandHandler {
                 .ifPresent(lines::add);
         lines.add(new CommandLine(new AddPublicCollectionButton(collection.getId())));
         lines.add(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST, CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION))));
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(messageText)
-                .availableCommands(lines).build()
-        );
+                .availableCommands(lines)
+                .build();
     }
 
     private Optional<CommandLine> createPaginationLine(final List<Card> cards, final int page, final int totalCardCount, final long collectionId) {

@@ -30,20 +30,19 @@ public class ViewCardListHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
         final int totalCardCount = cardService.findCardCountForUserId(context.userId());
         final List<CommandLine> commandLines = new ArrayList<>();
         commandLines.add(new CommandLine(
                 new CommandButton(CommandEnum.SEARCH),
                 new CommandButton(CommandEnum.ADD_CARD)
         ));
-        commandLines.add(new CommandLine(new CommandButton(CommandEnum.START)));
+        commandLines.add(new CommandLine(new CommandButton(CommandEnum.MAIN_MENU)));
 
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(String.format(YOUR_CARDS,  totalCardCount))
                 .availableCommands(commandLines)
-                .build()
-        );
+                .build();
     }
 }

@@ -6,7 +6,7 @@ import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class AddPublicCollectionHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(MessageContext context) {
+    public CommandResponse processCommand(MessageContext context) {
 
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
 
@@ -45,12 +45,10 @@ public class AddPublicCollectionHandler implements CommandHandler {
         final List<CommandLine> commandLines = List.of(
                 new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION, CommandParameterUtils.createCollectionIdParameter(fork.getId())))
         );
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(message)
                 .availableCommands(commandLines)
-                .build()
-        );
-
+                .build();
     }
 }

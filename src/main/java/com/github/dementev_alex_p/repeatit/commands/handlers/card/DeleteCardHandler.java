@@ -8,8 +8,7 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.handlers.TrainingCommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
-import com.github.dementev_alex_p.repeatit.commands.result.ProcessingResult;
-import com.github.dementev_alex_p.repeatit.commands.result.RIResponse;
+import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.training.Training;
 import com.github.dementev_alex_p.repeatit.training.TrainingService;
@@ -45,14 +44,14 @@ public class DeleteCardHandler implements CommandHandler {
     }
 
     @Override
-    public ProcessingResult processCommand(final MessageContext context) {
+    public CommandResponse processCommand(final MessageContext context) {
         if (isDeletionConfirmed(context)) {
             return deleteCard(context);
         }
         return sendConfirmation(context);
     }
 
-    private ProcessingResult sendConfirmation(final MessageContext context) {
+    private CommandResponse sendConfirmation(final MessageContext context) {
         long cardId = CommandParameterUtils.extractCardId(context);
         final Card card = cardService.findCardById(cardId);
         final String message = String.format(CONFIRM_TEXT, CardTextConverter.convertCardToTextForView(card));
@@ -68,15 +67,14 @@ public class DeleteCardHandler implements CommandHandler {
                         CommandParameterUtils.createCardIdParameter(cardId)
                 )
         );
-        return new ProcessingResult(RIResponse
+        return CommandResponse
                 .builder()
                 .text(message)
                 .availableCommands(List.of(commandLine))
-                .build()
-        );
+                .build();
     }
 
-    private ProcessingResult deleteCard(final MessageContext context) {
+    private CommandResponse deleteCard(final MessageContext context) {
         long cardId = CommandParameterUtils.extractCardId(context);
         cardService.softDeleteCardById(cardId);
 
@@ -85,11 +83,15 @@ public class DeleteCardHandler implements CommandHandler {
 
         if (isTrainingStartedNow) {
             trainingService.deleteCardFromCurrentTraining(currentTraining.get(), cardId);
-            final ProcessingResult processingResult = trainingCommandHandler.processCommand(context);
-            return processingResult.withAlter(DELETION_TEXT);
+            final CommandResponse commandResponse = trainingCommandHandler.processCommand(context);
+            return commandResponse
+                    .withAlter(DELETION_TEXT)
+                    .withCommand(CommandEnum.TRAINING);
         } else {
-            final ProcessingResult processingResult = viewCardListHandler.processCommand(context);
-            return processingResult.withAlter(DELETION_TEXT);
+            final CommandResponse commandResponse = viewCardListHandler.processCommand(context);
+            return commandResponse
+                    .withAlter(DELETION_TEXT)
+                    .withCommand(CommandEnum.VIEW_CARD);
         }
 
     }
