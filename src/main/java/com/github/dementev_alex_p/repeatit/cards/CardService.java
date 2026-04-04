@@ -14,6 +14,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CardService {
 
+    private static final int DEFAULT_LIMIT = 100;
+    private static final int DEFAULT_OFFSET = 0;
     private final CardRepository cardRepository;
 
     public Card findCardById(Long id) {
@@ -108,6 +110,14 @@ public class CardService {
                 10
         );
     }
+    public List<Card> searchCardInCollection(final long userId, final String query, final long collectionId) {
+        return cardRepository.searchCardsInCollection(
+                userId,
+                "%" + query.trim().toLowerCase() + "%",
+                collectionId,
+                10
+        );
+    }
 
     public void softDeleteCardById(final long cardId) {
         final Card card = cardRepository.findById(cardId)
@@ -120,7 +130,7 @@ public class CardService {
         return cardRepository.findCardsForDailyTraining(userId);
     }
 
-    public List<Card> findCardByCollectionId(final long collectionId, final int limit, final int offset) {
+    public List<Card> findCardsByCollectionId(final long collectionId, final int limit, final int offset) {
         return cardRepository.findByCardCollectionId(collectionId, limit, offset);
     }
 

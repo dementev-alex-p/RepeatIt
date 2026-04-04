@@ -45,7 +45,6 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
     @Query(""" 
             SELECT c FROM CardCollection c WHERE c.authorId = :userId AND
             LOWER(c.name) LIKE LOWER(:searchQuery)
-            AND c.isDeleted = false
             ORDER BY c.updatedAt DESC
             LIMIT :limit
             """)

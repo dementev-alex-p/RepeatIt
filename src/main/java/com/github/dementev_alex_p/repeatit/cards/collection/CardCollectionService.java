@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +30,9 @@ public class CardCollectionService {
         return cardCollectionRepository.findCountByAuthorId(authorId);
     }
 
-    public Optional<CardCollection> findById(long chosenCollectionId) {
-        return cardCollectionRepository.findById(chosenCollectionId);
+    public CardCollection findById(long collectionId) {
+        return cardCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new RuntimeException("Коллекция не найдена"));
     }
 
     @Transactional
@@ -51,10 +52,9 @@ public class CardCollectionService {
 
     @Transactional
     public void softDeleteById(final long collectionId) {
-        final CardCollection collection = cardCollectionRepository.findById(collectionId)
-                .orElseThrow(() -> new RuntimeException("Collection not found"));
+        final CardCollection collection = findById(collectionId);
         cardService.softDeleteCardsByCollectionId(collectionId);
-        collection.setDeleted(true);
+        collection.setDeletedAt(LocalDateTime.now());
         cardCollectionRepository.save(collection);
 
     }

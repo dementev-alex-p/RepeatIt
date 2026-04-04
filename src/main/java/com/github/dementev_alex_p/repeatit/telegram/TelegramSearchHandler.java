@@ -7,6 +7,7 @@ import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionServic
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
@@ -17,6 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQuery
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,9 +33,7 @@ public class TelegramSearchHandler {
         final long userId = inlineQuery.getFrom().getId();
         final String query = inlineQuery.getQuery();
 
-        final List<InlineQueryResult> inlineResults = isCollectionSearch(userId)
-                ? searchCollection(userId, query)
-                : searchCard(userId, query);
+        final List<InlineQueryResult> inlineResults = processSearch(userId, query);
 
         final AnswerInlineQuery answer = AnswerInlineQuery
                 .builder()
@@ -48,9 +48,41 @@ public class TelegramSearchHandler {
             throw new RuntimeException(e);
         }
     }
-    private boolean isCollectionSearch(final long userId) {
-        return tgMessageService
-                .findLastByUserId(userId)
+
+    private List<InlineQueryResult> processSearch(final long userId, final String query) {
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);
+
+        if (isCollectionSearch(lastMessage)) {
+            return searchCollection(userId, query);
+        }
+        if (isCardInCollectionSearch(lastMessage)) {
+            return searchCardInCollection(userId, query, lastMessage);
+        }
+        return searchCard(userId, query);
+    }
+
+    private List<InlineQueryResult> searchCardInCollection(final long userId, final String query, final Optional<TgMessage> lastMessage) {
+        final Long collectionId = lastMessage
+                .map(TgMessage::getCommandParameters)
+                .flatMap(CommandParameterUtils::extractCollectionId)
+                .orElseThrow();
+
+        final List<Card> cards = cardService.searchCardInCollection(userId, query, collectionId);
+
+        return cards
+                .stream()
+                .map(this::toInlineQueryResult)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isCardInCollectionSearch(final Optional<TgMessage> lastMessage) {
+        return lastMessage
+                .map(TgMessage::getCommand)
+                .filter(CommandEnum.VIEW_COLLECTION::equals)
+                .isPresent();
+    }
+    private boolean isCollectionSearch(final Optional<TgMessage> lastMessage) {
+        return lastMessage
                 .map(TgMessage::getCommand)
                 .filter(CommandEnum.EDIT_CARD_COLLECTION::equals)
                 .isPresent();

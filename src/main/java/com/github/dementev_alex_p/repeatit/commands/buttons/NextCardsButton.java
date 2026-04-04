@@ -12,7 +12,8 @@ public class NextCardsButton extends CommandButton {
                 ">>",
                 Arrays.asList(
                         CommandParameterUtils.createPageParameter(page),
-                        CommandParameterUtils.createCollectionIdParameter(collectionId))
-        );
+                        CommandParameterUtils.createCollectionIdParameter(collectionId),
+                        CommandParameterUtils.createActionParameter(ViewCardsInCollectionButton.VIEW_CARDS_ACTION)
+                ));
     }
 }

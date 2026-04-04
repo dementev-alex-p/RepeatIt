@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.training;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,18 @@ public class TrainingService {
         findCurrentTraining(userId).ifPresent(this::finishTraining);
         final Training training = trainingRepository.save(new Training(userId, LocalDateTime.now()));
         final List<TrainingCard> trainingCards = trainingCardService.createCardsForTraining(cards, training.getId());
+        training.setTrainingCards(trainingCards);
+        return training;
+    }
+
+    public Training create(long userId, final CardCollection collection){
+        findCurrentTraining(userId).ifPresent(this::finishTraining);
+
+        final Training training = trainingRepository.save(new Training(userId, LocalDateTime.now(), collection));
+
+        final List<TrainingCard> trainingCards = trainingCardService.createCardsForTraining(
+                collection.getCards(), training.getId()
+        );
         training.setTrainingCards(trainingCards);
         return training;
     }

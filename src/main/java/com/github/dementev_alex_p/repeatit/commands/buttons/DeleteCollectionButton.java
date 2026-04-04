@@ -7,7 +7,7 @@ public class DeleteCollectionButton extends CommandButton {
     public DeleteCollectionButton(final long collectionId) {
         super(
                 CommandEnum.DELETE_COLLECTION,
-                "Удалить",
+                "❌ Удалить",
                 CommandParameterUtils.createCollectionIdParameter(collectionId)
         );
     }

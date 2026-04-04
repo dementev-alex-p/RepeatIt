@@ -1,5 +1,6 @@
 package com.github.dementev_alex_p.repeatit.training;
 
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -30,6 +31,10 @@ public class Training {
     @OneToMany(mappedBy = "trainingId")
     private List<TrainingCard> trainingCards;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "studied_collection_id")
+    private CardCollection studiedCollection;
+
     @Column(name = "started_at")
     @NotNull
     private LocalDateTime startedAt;
@@ -40,5 +45,11 @@ public class Training {
     public Training(final long userId, final LocalDateTime startedAt) {
         this.userId = userId;
         this.startedAt = startedAt;
+    }
+
+    public Training(final long userId, final LocalDateTime startedAt, final CardCollection studiedCollection) {
+        this.userId = userId;
+        this.startedAt = startedAt;
+        this.studiedCollection = studiedCollection;
     }
 }

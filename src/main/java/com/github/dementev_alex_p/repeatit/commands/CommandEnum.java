@@ -27,7 +27,7 @@ public enum CommandEnum {
     SETTINGS("settings", "Настройки", null),
     DELETE_CARD("delete_card", "❌ Удалить", null),
     EDIT_COLLECTION_TITLE("edit_collection_title", "✍ Изменить название", null),
-    DELETE_COLLECTION("delete_collection", "Удалить коллекцию", null),
+    DELETE_COLLECTION("delete_collection", "❌ Удалить", null),
     ;
 
     @Getter

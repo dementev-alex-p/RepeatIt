@@ -39,7 +39,7 @@ public class AddPublicCollectionHandler implements CommandHandler {
 
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
 
-        final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
+        final CardCollection collection = cardCollectionService.findById(collectionId);
         final CardCollection fork = cardCollectionService.forkCardCollection(collection, context.userId());
         final String message = String.format(TITLE_TEXT, collection.getName());
         final List<CommandLine> commandLines = List.of(

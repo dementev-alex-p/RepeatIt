@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@SQLRestriction("deleted_at IS NULL")
 public class CardCollection {
     @Id
     @Column(name = "card_collection_id")
@@ -50,8 +52,8 @@ public class CardCollection {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public CardCollection(final long userId, final String name, final long parentCollectionId, final boolean isPublic) {
         this.authorId = userId;

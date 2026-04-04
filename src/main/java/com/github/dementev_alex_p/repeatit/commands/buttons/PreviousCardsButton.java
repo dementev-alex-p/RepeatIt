@@ -8,7 +8,9 @@ public class PreviousCardsButton extends CommandButton {
         super(
                 CommandEnum.VIEW_COLLECTION,
                 "<<",
-                CommandParameterUtils.createPageParameter(page), CommandParameterUtils.createCollectionIdParameter(collectionId)
+                CommandParameterUtils.createPageParameter(page),
+                CommandParameterUtils.createCollectionIdParameter(collectionId),
+                CommandParameterUtils.createActionParameter(ViewCardsInCollectionButton.VIEW_CARDS_ACTION)
         );
     }
 }

@@ -48,7 +48,7 @@ public class EditCollectionTitleHandler implements CommandHandler {
 
     private CommandResponse showEditionMessage(final MessageContext context) {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
-        final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
+        final CardCollection collection = cardCollectionService.findById(collectionId);
         final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton(
                 CommandEnum.VIEW_COLLECTION,
                 CommandParameterUtils.createCollectionIdParameter(collectionId))

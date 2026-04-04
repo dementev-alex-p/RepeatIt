@@ -32,15 +32,13 @@ public class ViewCollectionListHandler implements CommandHandler {
             <strong>Коллекции</strong>
             —————————————————————
             Ниже ваши коллекции c %d по %d (всего %d)
-            
             %s
-            💡 Для просмотра и изменения коллекции нажмите на ее номер:
+            💡 Для перехода к коллекции нажмите на ее номер:
             """;
     private static final String PUBLIC_COLLECTIONS_TEXT = """
             <strong>Публичные коллекции</strong>
             —————————————————————
             Ниже публичные коллекции c %d по %d (всего %d)
-            
             %s
             💡 Для просмотра карточек коллекции нажмите на ее номер:
             """;

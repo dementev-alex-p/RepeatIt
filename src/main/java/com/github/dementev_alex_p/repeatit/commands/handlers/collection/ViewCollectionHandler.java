@@ -13,7 +13,10 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCollectionButt
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCollectionTitleButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.NextCardsButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCardsButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.SearchCardInCollectionButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.StudyCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardsInCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
@@ -38,24 +41,12 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
             —————————————————————
-            <strong>Название:</strong> %s
-            
-            %s
-            %s
-            """;
-    //Прийти к этому
-    private static final String COLLECTION_VIEW_TEXT_2 = """
-            <strong>Коллекция</strong>
-            —————————————————————
             Название: %s
-            
-            Команды:
-            Изучать
-            Показать карточки
-            Изменить название
-            Удалить
+            %s
+            %s
             """;
-    private static final String COLLECTION_HINT = "💡 Для редактирования карточки нажмите на ее номер";
+    private static final String COLLECTION_CARD_HINT = "💡 Для редактирования карточки нажмите на ее номер";
+    private static final String COLLECTION_CARD_COUNT_TEXT = "Карточек в коллекции: %d";
     private static final String PUBLIC_COLLECTION_HINT = "💡 Вы можете добавить публичную коллекцию к себе для изучения";
     private static final int COUNT_CARDS_ON_PAGE = 5;
     private static final String CARD_DELIMITER = "—————————————————————\n\n";
@@ -76,35 +67,63 @@ public class ViewCollectionHandler implements CommandHandler {
 
     @Override
     public CommandResponse processCommand(MessageContext context) {
-        final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context))
-                .orElseThrow(() -> new RuntimeException("Коллекция не найдена"));
-        final int page = CommandParameterUtils.extractPage(context);
-        final int totalCardCount = cardService.findCardCountByCollectionId(collection.getId());
-        final List<Card> cards = cardService.findCardByCollectionId(
-                collection.getId(), COUNT_CARDS_ON_PAGE, (page - 1) * COUNT_CARDS_ON_PAGE
+        final CardCollection collection = cardCollectionService.findById(
+                CommandParameterUtils.extractCollectionId(context)
         );
         if (collection.isPublic()) {
-            return viewPublicCollection(collection, page, totalCardCount, cards);
+            return viewPublicCollection(context, collection);
         } else {
-            return viewLocalCollection(collection, page, totalCardCount, cards);
+            return viewLocalCollection(context, collection);
         }
-
     }
 
-    private CommandResponse viewLocalCollection(
-            final CardCollection collection, final int page, final int totalCardCount, final List<Card> cards
-    ) {
+    private CommandResponse viewLocalCollection(final MessageContext context, final CardCollection collection) {
+        if (isViewCardsAction(context)) {
+            return viewLocalCollectionWithCards(context, collection);
+        }
+        final int cardCount = cardService.findCardCountByCollectionId(collection.getId());
+        final String collectionText = String.format(
+                COLLECTION_VIEW_TEXT,
+                collection.getName(),
+                String.format(COLLECTION_CARD_COUNT_TEXT, cardCount),
+                ""
+        );
+        return CommandResponse
+                .builder()
+                .text(collectionText)
+                .availableCommands(createCommandLinesForView(collection, cardCount))
+                .build();
+    }
 
+    private List<CommandLine> createCommandLinesForView(final CardCollection collection, final int cardCount) {
+        return cardCount > 0
+                ? List.of(
+                new CommandLine(new StudyCollectionButton(collection.getId())),
+                new CommandLine(new ViewCardsInCollectionButton(collection.getId())),
+                new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
+                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST)))
+                : List.of(
+                new CommandLine(new CreateCardWithCollectionId(collection.getId())),
+                new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
+                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
+        );
+    }
+
+    private CommandResponse viewLocalCollectionWithCards(final MessageContext context, final CardCollection collection) {
+        final int page = CommandParameterUtils.extractPage(context);
+        final int totalCardCount = cardService.findCardCountByCollectionId(collection.getId());
+        final List<Card> cards = cardService.findCardsByCollectionId(
+                collection.getId(), COUNT_CARDS_ON_PAGE, (page - 1) * COUNT_CARDS_ON_PAGE
+        );
         final String messageText = String.format(
                 COLLECTION_VIEW_TEXT,
                 collection.getName(),
                 convertForView(cards, totalCardCount, page),
-                COLLECTION_HINT
+                COLLECTION_CARD_HINT
         );
         final List<CommandLine> commandLines = Stream.of(
                 createCardNumbersLine(cards, page, totalCardCount, collection.getId()),
-                createCardAdditionLine(collection.getId()),
-                createCollectionActionsLine(collection),
+                new CommandLine(new CreateCardWithCollectionId(collection.getId()), new SearchCardInCollectionButton()),
                 new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
         ).toList();
 
@@ -115,9 +134,19 @@ public class ViewCollectionHandler implements CommandHandler {
                 .build();
     }
 
-    private CommandResponse viewPublicCollection(
-            final CardCollection collection, final int page, final int totalCardCount, final List<Card> cards
-    ) {
+    private boolean isViewCardsAction(final MessageContext context) {
+        return CommandParameterUtils
+                .extractNullableAction(context).filter(ViewCardsInCollectionButton.VIEW_CARDS_ACTION::equals).isPresent();
+    }
+
+    private CommandResponse viewPublicCollection(final MessageContext context, final CardCollection collection) {
+
+        final int page = CommandParameterUtils.extractPage(context);
+        final int totalCardCount = cardService.findCardCountByCollectionId(collection.getId());
+        final List<Card> cards = cardService.findCardsByCollectionId(
+                collection.getId(), COUNT_CARDS_ON_PAGE, (page - 1) * COUNT_CARDS_ON_PAGE
+        );
+
         final String messageText = String.format(
                 COLLECTION_VIEW_TEXT,
                 collection.getName(),
@@ -148,20 +177,6 @@ public class ViewCollectionHandler implements CommandHandler {
             buttons.add(new NextCardsButton(page + 1, collectionId));
         }
         return Optional.of(new CommandLine(buttons));
-    }
-
-    private CommandLine createCollectionActionsLine(final CardCollection collection) {
-        return new CommandLine(
-                new EditCollectionTitleButton(collection.getId()),
-                new DeleteCollectionButton(collection.getId())
-        );
-    }
-
-    private CommandLine createCardAdditionLine(final long collectionId) {
-        return new CommandLine(
-                new CreateCardWithCollectionId(collectionId),
-                new CommandButton(CommandEnum.SEARCH)
-        );
     }
 
     private CommandLine createCardNumbersLine(final List<Card> cards, final int page, final int totalCardCount, final long collectionId) {

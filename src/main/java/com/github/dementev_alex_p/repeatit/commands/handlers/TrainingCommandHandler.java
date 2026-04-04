@@ -2,6 +2,8 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
@@ -17,7 +19,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,6 +36,7 @@ public class TrainingCommandHandler implements CommandHandler {
     private static final String START_TRAINING = """
             <strong>Тренировка</strong>
             —————————————————————
+            %s
             Постарайтесь вспомнить карточку и оцените результат:
             🚀 - Сразу вспомнилось
             ⏳ - Вспомнилось с трудом
@@ -47,18 +56,21 @@ public class TrainingCommandHandler implements CommandHandler {
     private static final String END_TRAINING = """
             <strong>Тренировка завершена!</strong>
             —————————————————————
+            %s
             Пройдено: %d/%d (%d%%)
             Из них:
             🚀 вспомнили сразу: %d
             ⏳ вспомнили с трудом: %d
             ❓ не удалось вспомнить: %d
             """;
+    private static final String COLLECTION_NAME = "<strong>Коллекция</strong>: %s";
     public static final String START_ACTION_CODE = "start";
     public static final String SHOW_BACK_SIDE = "show_back_side";
 
     public final TrainingService trainingService;
     public final TrainingCardService trainingCardService;
     public final CardService cardService;
+    public final CardCollectionService cardCollectionService;
 
     @Override
     public CommandEnum getCommand() {
@@ -165,9 +177,15 @@ public class TrainingCommandHandler implements CommandHandler {
         final int totalCardsCount = training.getTrainingCards().size();
         final int percentage = currentOrderIndex * 100 / totalCardsCount;
 
+        final String statisticText = String.format(
+                START_TRAINING,
+                getCollectionName(training),
+                currentOrderIndex, totalCardsCount, percentage,
+                createProgressBar(percentage)
+        );
         final CommandResponse statisticMessage = CommandResponse
                 .builder()
-                .text(String.format(START_TRAINING, currentOrderIndex, totalCardsCount, percentage, createProgressBar(percentage)))
+                .text(statisticText)
                 .availableCommands(Collections.singletonList(new CommandLine(new FinishTrainingButton())))
                 .build();
 
@@ -205,6 +223,7 @@ public class TrainingCommandHandler implements CommandHandler {
 
         final String statisticText = String.format(
                 END_TRAINING,
+                getCollectionName(training),
                 scoredCards.size(),
                 training.getTrainingCards().size(),
                 scoredCards.size() * 100 / training.getTrainingCards().size(),
@@ -221,10 +240,63 @@ public class TrainingCommandHandler implements CommandHandler {
     }
 
     private CommandResponse startTraining(final MessageContext context) {
-        final List<Card> cardsForTraining = findCardsForTraining(context.userId());
-        if (CollectionUtils.isEmpty(cardsForTraining)) {
+
+        final boolean isStudyCollection = context.commandParameters()
+                .containsKey(CommandParameterUtils.COLLECTION_PARAMETER_CODE);
+
+        final TrainingStarterPack trainingStarterPack = isStudyCollection
+                ? createTrainingForStudyCollection(context)
+                : createDalyTraining(context);
+
+        if (trainingStarterPack == null) {
             return sendNotFoundCardResponse();
         }
+
+        final Training training = trainingStarterPack.training;
+        final Card firstCard = trainingStarterPack.firstCard;
+        final int totalCardCount = training.getTrainingCards().size();
+
+        final String statisticText = String.format(
+                START_TRAINING,
+                getCollectionName(training),
+                0, totalCardCount, 0,
+                createProgressBar(0)
+        );
+        final CommandResponse statisticMessage = CommandResponse
+                .builder()
+                .text(statisticText)
+                .availableCommands(List.of(new CommandLine(new FinishTrainingButton())))
+                .build();
+
+        return CommandResponse
+                .builder()
+                .text(String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)))
+                .availableCommands(createCommandLineForCard(firstCard))
+                .trainingStatisticMessage(statisticMessage)
+                .isChatClearRequired(true)
+                .build();
+    }
+
+    private TrainingStarterPack createTrainingForStudyCollection(final MessageContext context) {
+        final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context));
+        final Training training = trainingService.create(context.userId(), collection);
+        final long firstCardId = extractNextCard(training).map(TrainingCard::getCardId).orElseThrow();
+        final Card firstCard = collection.getCards()
+                .stream()
+                .filter(card -> card.getId().equals(firstCardId))
+                .findAny()
+                .orElseThrow();
+
+        return new TrainingStarterPack(training, firstCard);
+    }
+
+    private TrainingStarterPack createDalyTraining(final MessageContext context) {
+        final List<Card> cardsForTraining = findCardsForTraining(context.userId());
+
+        if (CollectionUtils.isEmpty(cardsForTraining)) {
+            return null;
+        }
+
         final Training training = trainingService.create(context.userId(), cardsForTraining);
         final long firstCardId = extractNextCard(training).map(TrainingCard::getCardId).orElseThrow();
         final Card firstCard = cardsForTraining
@@ -232,21 +304,8 @@ public class TrainingCommandHandler implements CommandHandler {
                 .filter(card -> card.getId().equals(firstCardId))
                 .findAny()
                 .orElseThrow();
-        final int totalCardCount = training.getTrainingCards().size();
 
-        final CommandResponse statisticMessage = CommandResponse
-                .builder()
-                .text(String.format(START_TRAINING, 0, totalCardCount, 0, createProgressBar(0)))
-                .availableCommands(List.of(new CommandLine(new FinishTrainingButton())))
-                .build();
-
-       return CommandResponse
-               .builder()
-               .text(String.format(NEXT_CARD_TEXT, 1, CardTextConverter.forTraining(firstCard, false)))
-               .availableCommands(createCommandLineForCard(firstCard))
-               .trainingStatisticMessage(statisticMessage)
-               .isChatClearRequired(true)
-               .build();
+        return new TrainingStarterPack(training, firstCard);
     }
 
     private CommandResponse sendNotFoundCardResponse() {
@@ -296,4 +355,12 @@ public class TrainingCommandHandler implements CommandHandler {
                 .map(RecallScoreEnum::valueOf)
                 .orElseThrow();
     }
+
+    private String getCollectionName(final Training training) {
+        return Optional
+                .ofNullable(training.getStudiedCollection())
+                .map(c -> String.format(COLLECTION_NAME, c.getName()))
+                .orElse("");
+    }
+    private record TrainingStarterPack (Training training, Card firstCard){}
 }

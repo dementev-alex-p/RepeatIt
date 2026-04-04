@@ -66,7 +66,7 @@ public class EditCardCollectionHandler implements CommandHandler {
                 .flatMap(CommandParameterUtils::extractCardId)
                 .orElseThrow();
 
-        final CardCollection collection = cardCollectionService.findById(collectionId).orElseThrow();
+        final CardCollection collection = cardCollectionService.findById(collectionId);
         cardService.updateCardCollection(cardId, collection);
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
         return viewCardHandler

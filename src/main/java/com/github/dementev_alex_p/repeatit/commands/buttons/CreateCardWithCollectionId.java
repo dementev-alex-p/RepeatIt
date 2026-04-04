@@ -7,7 +7,7 @@ public class CreateCardWithCollectionId extends CommandButton {
     public CreateCardWithCollectionId(final long collectionId) {
         super(
                 CommandEnum.CREATE_CARD,
-                CommandEnum.CREATE_COLLECTION.getDescription(),
+                "➕ Создать карточку",
                 CommandEnum.CREATE_CARD.getDefaultParameter(),
                 CommandParameterUtils.createCollectionIdParameter(collectionId)
         );
