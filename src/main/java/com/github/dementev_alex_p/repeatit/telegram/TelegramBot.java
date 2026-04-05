@@ -175,6 +175,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         final SendMessage sendMessage = SendMessage
                 .builder()
                 .chatId(context.chatId())
+                .disableNotification(true)
                 .text(response.getText())
                 .parseMode("HTML")
                 .replyMarkup(inlineKeyboard)
