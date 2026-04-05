@@ -87,7 +87,7 @@ public class CreatCardHandler implements CommandHandler {
                 WRITE_BACK_SIDE
         );
         final List<CommandLine> commandLines = List.of(
-                new CommandLine(new SkipBackSideButton(CommandEnum.CREATE_CARD, card.getId()))
+                new CommandLine(new SkipBackSideButton(card.getId()))
         );
 
 

@@ -5,7 +5,9 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
 import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.SkipCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
@@ -50,12 +52,31 @@ public class EditCardCollectionHandler implements CommandHandler {
             return updateCardCollection(chosenCollectionId.get(), context);
         }
         final Card card = cardService.findCardById(CommandParameterUtils.extractCardId(context));
-
+        if (isSkipCollectionAction(context)) {
+            return skipCollection(context);
+        }
+        final List<CommandLine> commandLines = List.of(
+                new CommandLine(new CommandButton(CommandEnum.SEARCH)),
+                new CommandLine(new SkipCollectionButton(card.getId())),
+                new CommandLine(new BackButton(CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(card.getId())))
+        );
         return CommandResponse
                 .builder()
                 .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
-                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.SEARCH))))
+                .availableCommands(commandLines)
                 .build();
+    }
+
+    private CommandResponse skipCollection(final MessageContext context) {
+        final long cardId = CommandParameterUtils.extractCardId(context);
+        cardService.updateCardCollection(cardId, null);
+        return viewCardHandler
+                .processCommand(context)
+                .withCommand(CommandEnum.VIEW_CARD);
+    }
+
+    private boolean isSkipCollectionAction(final MessageContext context) {
+        return CommandParameterUtils.extractNullableAction(context).filter(SkipCollectionButton.ACTION_VALUE::equals).isPresent();
     }
 
     private CommandResponse updateCardCollection(final long collectionId, final MessageContext context) {
@@ -71,8 +92,7 @@ public class EditCardCollectionHandler implements CommandHandler {
         context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
         return viewCardHandler
                 .processCommand(context)
-                .withCommand(CommandEnum.VIEW_CARD)
-                .withParameters(CommandParameterUtils.convert(context.commandParameters()));
+                .withCommand(CommandEnum.VIEW_CARD);
     }
 
     private Optional<Long> extractCollectionIdFromMessage(final MessageContext messageContext) {
