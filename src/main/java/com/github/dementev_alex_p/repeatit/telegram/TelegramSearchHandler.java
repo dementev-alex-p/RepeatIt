@@ -64,7 +64,7 @@ public class TelegramSearchHandler {
     private List<InlineQueryResult> searchCardInCollection(final long userId, final String query, final Optional<TgMessage> lastMessage) {
         final Long collectionId = lastMessage
                 .map(TgMessage::getCommandParameters)
-                .flatMap(CommandParameterUtils::extractCollectionId)
+                .flatMap(CommandParameterUtils::extractNullableCollectionId)
                 .orElseThrow();
 
         final List<Card> cards = cardService.searchCardInCollection(userId, query, collectionId);

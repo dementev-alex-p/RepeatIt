@@ -70,14 +70,14 @@ public class Card {
     private LocalDateTime deletedAt;
 
     protected Card(final String frontSide, final String backSide, final long userId, final CardCollection cardCollection) {
-        this(userId, frontSide);
+        this(userId, frontSide, cardCollection);
         this.backSide = backSide;
-        this.cardCollection = cardCollection;
     }
 
-    protected Card(final Long userId, final String frontSide) {
+    protected Card(final Long userId, final String frontSide, final CardCollection collection) {
         this.userId = userId;
         this.frontSide = frontSide;
+        this.cardCollection = collection;
         streak = 0;
         easinessFactor = 2.5F;
         intervalDays = 0;

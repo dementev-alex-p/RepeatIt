@@ -14,8 +14,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CardService {
 
-    private static final int DEFAULT_LIMIT = 100;
-    private static final int DEFAULT_OFFSET = 0;
     private final CardRepository cardRepository;
 
     public Card findCardById(Long id) {
@@ -23,8 +21,8 @@ public class CardService {
                 .orElseThrow();
     }
 
-    public Card createCard(long userId, String message) {
-        return cardRepository.save(new Card(userId, message));
+    public Card createCard(final long userId, final String message, final Optional<CardCollection> collection) {
+        return cardRepository.save(new Card(userId, message, collection.orElse(null)));
     }
 
 

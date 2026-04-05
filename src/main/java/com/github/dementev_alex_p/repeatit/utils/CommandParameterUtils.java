@@ -38,6 +38,13 @@ public class CommandParameterUtils {
                 .map(parameters -> parameters.get(ACTION_PARAMETER_CODE));
     }
 
+    public static Optional<Long> extractNullableCollectionId(final MessageContext context) {
+        return Optional
+                .ofNullable(context.commandParameters())
+                .map(parameters -> parameters.get(COLLECTION_PARAMETER_CODE))
+                .map(Long::parseLong);
+    }
+
     public static long extractCollectionId(final MessageContext context) {
         return Optional
                 .ofNullable(context.commandParameters().get(COLLECTION_PARAMETER_CODE))
@@ -71,7 +78,7 @@ public class CommandParameterUtils {
                 .findAny();
     }
 
-    public static Optional<Long> extractCollectionId(final List<CommandParameter> commandParameters) {
+    public static Optional<Long> extractNullableCollectionId(final List<CommandParameter> commandParameters) {
         if (CollectionUtils.isEmpty(commandParameters)) {
             return Optional.empty();
         }

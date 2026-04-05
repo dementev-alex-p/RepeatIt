@@ -2,12 +2,15 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.SkipBackSideButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
+import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -34,7 +37,7 @@ public class CreatCardHandler implements CommandHandler {
             """;
     private static final String WRITE_FRONT_SIDE = """
             ✍ <i>Введите <strong>обложку</strong>...</i>
-          
+            
             <code>💡 Для быстрого создания карточки из любого пункта меню, просто введите и отправьте мне ее обложку </code>
             """;
     private static final String WRITE_BACK_SIDE = "✅ Обложка сохранена!\n\n✍ <i>Введите <strong>содержание</strong>...</i>";
@@ -42,6 +45,7 @@ public class CreatCardHandler implements CommandHandler {
     private final CardService cardService;
     private final TgMessageService tgMessageService;
     private final ViewCardHandler viewCardHandler;
+    private final CardCollectionService cardCollectionService;
 
     @Override
     public CommandEnum getCommand() {
@@ -51,23 +55,24 @@ public class CreatCardHandler implements CommandHandler {
     @Override
     public CommandResponse processCommand(final MessageContext context) {
         if (isStartCreationCard(context)) {
-            return startCreationCard();
+            return startCreationCard(context);
         }
         if (isSkipBackSideCommand(context)) {
             return skipBackSide(context);
         }
         final String message = context.message().orElseThrow();
-        final Optional<Long> createdCardId = getCreatedCardIdFromLastMessage(context);
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(context.userId());
+        final Optional<Long> createdCardId = getCreatedCardIdFromLastMessage(lastMessage);
         //Если предыдущее сообщение не содержало id карты, то значит карточка еще не создана и текущий ввод - это лицевая сторона
         boolean isFrontSideInput = createdCardId.isEmpty();
         if (isFrontSideInput) {
-            return createCardWithFrontSide(context, message);
+            return createCardWithFrontSide(context, message, lastMessage);
         }
         return saveCardBackSide(context, createdCardId.get(), message);
     }
 
-    private Optional<Long> getCreatedCardIdFromLastMessage(final MessageContext context) {
-        return tgMessageService.findLastByUserId(context.userId())
+    private Optional<Long> getCreatedCardIdFromLastMessage(final Optional<TgMessage> lastMessage) {
+        return lastMessage
                 .filter(m -> m.getCommand() == CommandEnum.CREATE_CARD)
                 .flatMap(message -> CommandParameterUtils.extractCardId(message.getCommandParameters()));
     }
@@ -79,11 +84,18 @@ public class CreatCardHandler implements CommandHandler {
                 .withCommand(CommandEnum.VIEW_CARD);
     }
 
-    private CommandResponse createCardWithFrontSide(final MessageContext context, final String frontSideText) {
-        final Card card = cardService.createCard(context.userId(), frontSideText);
+    private CommandResponse createCardWithFrontSide(final MessageContext context, final String frontSideText, final Optional<TgMessage> lastMessage) {
+        final Optional<CardCollection> collection = lastMessage
+                .map(TgMessage::getCommandParameters)
+                .flatMap(CommandParameterUtils::extractNullableCollectionId)
+                .map(cardCollectionService::findById);
+
+        final Card card = cardService.createCard(context.userId(), frontSideText, collection);
         final String startCreationText = String.format(
                 TITLE_TEXT,
-                CardTextConverter.convertForCreatingCard(frontSideText),
+                collection.isEmpty()
+                        ? CardTextConverter.convertForCreatingCard(frontSideText)
+                        : CardTextConverter.convertForCreatingCardWithCollection(frontSideText, collection.get()),
                 WRITE_BACK_SIDE
         );
         final List<CommandLine> commandLines = List.of(
@@ -100,11 +112,29 @@ public class CreatCardHandler implements CommandHandler {
                 .build();
     }
 
-    private CommandResponse startCreationCard() {
-
+    private CommandResponse startCreationCard(final MessageContext context) {
+        final Optional<Long> chosenCollectionId = CommandParameterUtils.extractNullableCollectionId(context);
+        if (chosenCollectionId.isPresent()) {
+            return showCreationMessageWithCollection(chosenCollectionId.get());
+        }
         final String startCreationText = String.format(
                 TITLE_TEXT,
                 CardTextConverter.convertForCreatingCard(null),
+                WRITE_FRONT_SIDE
+        );
+        return CommandResponse
+                .builder()
+                .text(startCreationText)
+                .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.ADD_CARD))))
+                .isAnswerExcepted(true)
+                .build();
+    }
+
+    private CommandResponse showCreationMessageWithCollection(final long chosenCollectionId) {
+        final CardCollection collection = cardCollectionService.findById(chosenCollectionId);
+        final String startCreationText = String.format(
+                TITLE_TEXT,
+                CardTextConverter.convertForCreatingCardWithCollection(null, collection),
                 WRITE_FRONT_SIDE
         );
         return CommandResponse
@@ -130,7 +160,6 @@ public class CreatCardHandler implements CommandHandler {
                 .withCommand(CommandEnum.VIEW_CARD)
                 .withParameters(CommandParameterUtils.convert(context.commandParameters()));
     }
-
 
 
     private boolean isSkipBackSideCommand(final MessageContext context) {

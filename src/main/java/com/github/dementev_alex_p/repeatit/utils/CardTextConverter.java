@@ -38,6 +38,12 @@ public class CardTextConverter {
                 : String.format(CARD_VIEW_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS);
     }
 
+    public static String convertForCreatingCardWithCollection(final String frontSide, final CardCollection collection) {
+        return frontSide == null
+                ? String.format(CARD_VIEW_FULL_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS, collection.getName())
+                : String.format(CARD_VIEW_FULL_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS, collection.getName());
+    }
+
     public static String convertCardToTextForView(final Card card) {
         return String.format(
                 CARD_VIEW_FULL_TEXT,

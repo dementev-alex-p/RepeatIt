@@ -139,8 +139,7 @@ public class ViewCollectionListHandler implements CommandHandler {
     }
 
     private boolean isPublicCollectionView(final MessageContext context) {
-        return Optional
-                .ofNullable(context.commandParameters().get(CommandParameterUtils.ACTION_PARAMETER_CODE))
+        return CommandParameterUtils.extractNullableAction(context)
                 .filter(PUBLIC_COLLECTIONS_ACTION::equals)
                 .isPresent();
     }
