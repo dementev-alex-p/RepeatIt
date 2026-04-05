@@ -76,4 +76,8 @@ public class CardCollectionService {
         );
 
     }
+
+    public CardCollection createCollection(final long userId, final String name) {
+        return cardCollectionRepository.save(new CardCollection(userId, name));
+    }
 }

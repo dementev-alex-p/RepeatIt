@@ -64,5 +64,12 @@ public class CardCollection {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public CardCollection(final long userId, final String name) {
+        this.authorId = userId;
+        this.name = name;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
 
 }
