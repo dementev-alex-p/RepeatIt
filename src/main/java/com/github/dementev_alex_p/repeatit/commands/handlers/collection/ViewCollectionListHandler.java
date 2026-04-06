@@ -31,7 +31,8 @@ public class ViewCollectionListHandler implements CommandHandler {
     private static final String COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
             —————————————————————
-            Ниже ваши коллекции c %d по %d (всего %d)
+            Ниже ваши коллекции c %d по %d (всего %d):
+            
             %s
             💡 Для перехода к коллекции нажмите на ее номер:
             """;
@@ -53,7 +54,10 @@ public class ViewCollectionListHandler implements CommandHandler {
             —————————————————————
             Все публичные коллекции уже добавлены в вашу библиотеку!
             """;
-    private static final String VIEW_COLLECTION_TEXT = "\n%d. %s (карточек %d)\n";
+    private static final String VIEW_COLLECTION_TEXT = """
+            %d. %s (карточек %d)
+            ——————————
+            """;
     private static final int COUNT_COLLECTIONS_ON_PAGE = 5;
     public static final String PUBLIC_COLLECTIONS_ACTION = "public_collections";
 

@@ -41,7 +41,7 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
             —————————————————————
-            Название: %s
+            <strong>Название:</strong> %s
             %s
             %s
             """;
@@ -49,13 +49,14 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String COLLECTION_CARD_COUNT_TEXT = "Карточек в коллекции: %d";
     private static final String PUBLIC_COLLECTION_HINT = "💡 Вы можете добавить публичную коллекцию к себе для изучения";
     private static final int COUNT_CARDS_ON_PAGE = 5;
-    private static final String CARD_DELIMITER = "—————————————————————\n\n";
+    private static final String CARD_DELIMITER = "—————————————————————\n";
     private static final String ZERO_CARDS_VIEW = "В коллекции еще нет карточек";
     private static final String CARDS_VIEW = """
             Ниже карточки c %d по %d (всего %d):
             
             %s
             """;
+    private static final String CARD_WITH_NUMBER = "%d. \n%s";
 
     private final CardCollectionService cardCollectionService;
     private final CardService cardService;
@@ -202,9 +203,11 @@ public class ViewCollectionHandler implements CommandHandler {
         }
         final int firstNumber = (page - 1) * COUNT_CARDS_ON_PAGE + 1;
         final int lastNumber = firstNumber + cards.size() - 1;
+        final AtomicInteger number = new AtomicInteger();
         final String cardText = cards
                 .stream()
                 .map(CardTextConverter::convertCardToShortText)
+                .map(text -> String.format(CARD_WITH_NUMBER, number.incrementAndGet(), text))
                 .collect(Collectors.joining(CARD_DELIMITER));
         return String.format(CARDS_VIEW, firstNumber, lastNumber, totalCardCount, cardText);
     }

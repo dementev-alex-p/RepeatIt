@@ -40,16 +40,16 @@ public class CardTextConverter {
 
     public static String convertForCreatingCardWithCollection(final String frontSide, final CardCollection collection) {
         return frontSide == null
-                ? String.format(CARD_VIEW_FULL_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS, collection.getName())
-                : String.format(CARD_VIEW_FULL_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS, collection.getName());
+                ? String.format(CARD_VIEW_FULL_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS, escapeForHtml(collection.getName()))
+                : String.format(CARD_VIEW_FULL_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS, escapeForHtml(collection.getName()));
     }
 
     public static String convertCardToTextForView(final Card card) {
         return String.format(
                 CARD_VIEW_FULL_TEXT,
                 escapeForHtml(card.getFrontSide()),
-                Optional.ofNullable(card.getBackSide()).orElse(DASH_BACK_SIDE),
-                Optional.ofNullable(card.getCardCollection()).map(CardCollection::getName).orElse(DASH_BACK_SIDE)
+                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::escapeForHtml).orElse(DASH_BACK_SIDE),
+                Optional.ofNullable(card.getCardCollection()).map(c -> escapeForHtml(c.getName())).orElse(DASH_BACK_SIDE)
         );
     }
 
@@ -57,8 +57,8 @@ public class CardTextConverter {
         return String.format(
                 CARD_VIEW_FOR_EDITION_TEXT,
                 escapeForHtml(card.getFrontSide()),
-                Optional.ofNullable(card.getBackSide()).orElse(DASH_BACK_SIDE),
-                Optional.ofNullable(card.getCardCollection()).map(CardCollection::getName).orElse(DASH_BACK_SIDE)
+                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::escapeForHtml).orElse(DASH_BACK_SIDE),
+                Optional.ofNullable(card.getCardCollection()).map(c -> escapeForHtml(c.getName())).orElse(DASH_BACK_SIDE)
         );
     }
 
