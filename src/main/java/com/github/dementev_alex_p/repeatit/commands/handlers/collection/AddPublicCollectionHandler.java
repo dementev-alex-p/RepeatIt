@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
@@ -40,11 +40,9 @@ public class AddPublicCollectionHandler implements CommandHandler {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
 
         final CardCollection collection = cardCollectionService.findById(collectionId);
-        final CardCollection fork = cardCollectionService.forkCardCollection(collection, context.userId());
+        cardCollectionService.forkCardCollection(collection, context.userId());
         final String message = String.format(TITLE_TEXT, collection.getName());
-        final List<CommandLine> commandLines = List.of(
-                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION, CommandParameterUtils.createCollectionIdParameter(fork.getId())))
-        );
+        final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton()));
         return CommandResponse
                 .builder()
                 .text(message)

@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
@@ -49,10 +49,7 @@ public class EditCollectionTitleHandler implements CommandHandler {
     private CommandResponse showEditionMessage(final MessageContext context) {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
         final CardCollection collection = cardCollectionService.findById(collectionId);
-        final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton(
-                CommandEnum.VIEW_COLLECTION,
-                CommandParameterUtils.createCollectionIdParameter(collectionId))
-        ));
+        final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton()));
         return CommandResponse
                 .builder()
                 .text(String.format(TITLE_EDITION_TEXT, collection.getName()))

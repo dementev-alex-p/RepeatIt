@@ -46,9 +46,7 @@ public class EditCardBackSideHandler implements CommandHandler {
             if (!StringUtils.isBlank(card.getBackSide())) {
                 commandLines.add(new CommandLine(new DeleteCardBackSideButton(cardId)));
             }
-            commandLines.add(new CommandLine(new BackButton(
-                    CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(cardId)
-            )));
+            commandLines.add(new CommandLine(new BackButton()));
 
             return CommandResponse
                     .builder()

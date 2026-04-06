@@ -1,6 +1,6 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

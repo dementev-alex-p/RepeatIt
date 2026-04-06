@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CollectionNumberButton;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -120,7 +119,7 @@ public class ViewCollectionListHandler implements CommandHandler {
             return CommandResponse
                     .builder()
                     .text(ZERO_PUBLIC_COLLECTIONS_TEXT)
-                    .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))))
+                    .availableCommands(List.of(new CommandLine(new BackButton())))
                     .build();
         }
         final int page = CommandParameterUtils.extractPage(context);
@@ -132,7 +131,7 @@ public class ViewCollectionListHandler implements CommandHandler {
 
         final List<CommandLine> commandLines = Arrays.asList(
                 createNumberButtons(publicCollections, publicCollectionsCount, page, true),
-                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
+                new CommandLine(new BackButton())
         );
 
         return CommandResponse

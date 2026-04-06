@@ -2,8 +2,8 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.SkipBackSideButton;
@@ -61,7 +61,7 @@ public class CreatCardHandler implements CommandHandler {
             return skipBackSide(context);
         }
         final String message = context.message().orElseThrow();
-        final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(context.userId());
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastEditableByUserId(context.userId());
         final Optional<Long> createdCardId = getCreatedCardIdFromLastMessage(lastMessage);
         //Если предыдущее сообщение не содержало id карты, то значит карточка еще не создана и текущий ввод - это лицевая сторона
         boolean isFrontSideInput = createdCardId.isEmpty();
@@ -125,7 +125,7 @@ public class CreatCardHandler implements CommandHandler {
         return CommandResponse
                 .builder()
                 .text(startCreationText)
-                .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.ADD_CARD))))
+                .availableCommands(List.of(new CommandLine(new BackButton())))
                 .isAnswerExcepted(true)
                 .build();
     }
@@ -140,7 +140,7 @@ public class CreatCardHandler implements CommandHandler {
         return CommandResponse
                 .builder()
                 .text(startCreationText)
-                .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.ADD_CARD))))
+                .availableCommands(List.of(new CommandLine(new BackButton())))
                 .isAnswerExcepted(true)
                 .build();
     }

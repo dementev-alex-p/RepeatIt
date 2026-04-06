@@ -45,8 +45,7 @@ public class ViewMainMenuHandler implements CommandHandler {
             final List<CommandLine> commandLines = List.of(
                     new CommandLine(new StartTrainingButton()),
                     new CommandLine(CommandEnum.VIEW_CARD_LIST),
-                    new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
-                    new CommandLine(CommandEnum.SETTINGS)
+                    new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
             );
             return CommandResponse
                     .builder()

@@ -2,8 +2,8 @@ package com.github.dementev_alex_p.repeatit.telegram;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
@@ -50,7 +50,7 @@ public class TelegramSearchHandler {
     }
 
     private List<InlineQueryResult> processSearch(final long userId, final String query) {
-        final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);
+        final Optional<TgMessage> lastMessage = tgMessageService.findLastEditableByUserId(userId);
 
         if (isCollectionSearch(lastMessage)) {
             return searchCollection(userId, query);

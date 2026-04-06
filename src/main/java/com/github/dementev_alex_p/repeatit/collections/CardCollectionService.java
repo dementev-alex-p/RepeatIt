@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.cards.collection;
+package com.github.dementev_alex_p.repeatit.collections;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class CardCollectionService {
     }
 
     @Transactional
-    public CardCollection forkCardCollection(CardCollection parentCollection, long userId) {
+    public void forkCardCollection(CardCollection parentCollection, long userId) {
         final CardCollection newCardCollection = cardCollectionRepository.save(
                 new CardCollection(
                         userId,
@@ -47,7 +47,6 @@ public class CardCollectionService {
         );
 
         cardService.forkCards(parentCollection.getCards(), userId, newCardCollection);
-        return newCardCollection;
     }
 
     @Transactional

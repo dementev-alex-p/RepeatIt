@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.training;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCardService;
 import lombok.RequiredArgsConstructor;

@@ -2,8 +2,10 @@ package com.github.dementev_alex_p.repeatit.message_context;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
+import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardButton;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessage;
 import com.github.dementev_alex_p.repeatit.tg_message.TgMessageService;
+import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,6 +70,9 @@ public class MessageContextService {
         if (callbackData.isPresent()) {
             String[] request = callbackData.get().split("\\?");
             final CommandEnum command = CommandEnum.findCommandByCode(request[0]);
+            if (command == CommandEnum.RETURN_BACK) {
+                return determinateCommandFromLastMessage(userId);
+            }
             final Map<String, String> parameters = request.length > 1
                     ? extractCommandParameters(request[1]) : new HashMap<>();
             return new Command(command, parameters);
@@ -85,7 +91,7 @@ public class MessageContextService {
                 }
             }
 
-            final Optional<TgMessage> lastMessage = tgMessageService.findLastByUserId(userId);
+            final Optional<TgMessage> lastMessage = tgMessageService.findLastEditableByUserId(userId);
             final boolean isExceptedAnswer = lastMessage.filter(TgMessage::isAnswerExcepted).isPresent();
             if (isExceptedAnswer) {
                 return new Command(
@@ -94,9 +100,25 @@ public class MessageContextService {
                 );
             }
             //Если мы не ждали ответа значит это создание новой карточки
-            return new Command(CommandEnum.CREATE_CARD, new HashMap<>());
+            final HashMap<String, String> parameters = new HashMap<>();
+            parameters.put(CommandParameterUtils.ACTION_PARAMETER_CODE, CreateCardButton.START_ACTION_CODE);
+            return new Command(CommandEnum.CREATE_CARD, parameters);
         }
         throw new IllegalArgumentException("Сообщение пользователя не поддерживается!");
+    }
+
+    private Command determinateCommandFromLastMessage(final long userId) {
+        final List<TgMessage> lastedOrderedMessages = tgMessageService.findLastedCardsByUserIdOrderedByCreatedAtDesc(userId, 10);
+        if (lastedOrderedMessages.isEmpty()) {
+            return new Command(CommandEnum.MAIN_MENU, new HashMap<>());
+        }
+        final int lastMessageLevel = lastedOrderedMessages.get(0).getCommand().getHierarchyLevel();
+        return lastedOrderedMessages
+                .stream()
+                .filter(message -> message.getCommand().getHierarchyLevel() > lastMessageLevel)
+                .findFirst()
+                .map(message -> new Command(message.getCommand(), extractCommandParametersFromMessage(message)))
+                .orElse(new Command(CommandEnum.MAIN_MENU, new HashMap<>()));
     }
 
     private Map<String, String> extractCommandParameters(final String request) {

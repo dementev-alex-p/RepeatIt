@@ -2,6 +2,7 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
+import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
@@ -37,7 +38,7 @@ public class ViewCardListHandler implements CommandHandler {
                 new CommandButton(CommandEnum.SEARCH),
                 new CommandButton(CommandEnum.ADD_CARD)
         ));
-        commandLines.add(new CommandLine(new CommandButton(CommandEnum.MAIN_MENU)));
+        commandLines.add(new CommandLine(new BackButton()));
 
         return CommandResponse
                 .builder()

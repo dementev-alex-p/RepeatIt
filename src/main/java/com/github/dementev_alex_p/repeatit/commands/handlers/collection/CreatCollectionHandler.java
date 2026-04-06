@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
@@ -64,7 +64,7 @@ public class CreatCollectionHandler implements CommandHandler {
         return CommandResponse
                 .builder()
                 .text(TITLE_TEXT)
-                .availableCommands(List.of(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))))
+                .availableCommands(List.of(new CommandLine(new BackButton())))
                 .isAnswerExcepted(true)
                 .build();
     }

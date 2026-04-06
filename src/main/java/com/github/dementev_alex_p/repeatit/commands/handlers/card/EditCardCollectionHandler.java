@@ -2,8 +2,8 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
@@ -58,7 +58,7 @@ public class EditCardCollectionHandler implements CommandHandler {
         final List<CommandLine> commandLines = List.of(
                 new CommandLine(new CommandButton(CommandEnum.SEARCH)),
                 new CommandLine(new SkipCollectionButton(card.getId())),
-                new CommandLine(new BackButton(CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(card.getId())))
+                new CommandLine(new BackButton())
         );
         return CommandResponse
                 .builder()
@@ -81,7 +81,7 @@ public class EditCardCollectionHandler implements CommandHandler {
 
     private CommandResponse updateCardCollection(final long collectionId, final MessageContext context) {
         final Long cardId = tgMessageService
-                .findLastByUserId(context.userId())
+                .findLastEditableByUserId(context.userId())
                 .filter(message -> CommandEnum.EDIT_CARD_COLLECTION == message.getCommand())
                 .map(TgMessage::getCommandParameters)
                 .flatMap(CommandParameterUtils::extractCardId)

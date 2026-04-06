@@ -39,7 +39,7 @@ public class EditCardFrontSideHandler implements CommandHandler {
         long cardId = CommandParameterUtils.extractCardId(context);
         if (context.message().isEmpty()) {
             final Card card = cardService.findCardById(cardId);
-            final BackButton backButton = new BackButton(CommandEnum.VIEW_CARD, CommandParameterUtils.createCardIdParameter(cardId));
+            final BackButton backButton = new BackButton();
             return CommandResponse
                     .builder()
                     .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForEdition(card)))

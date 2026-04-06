@@ -20,9 +20,7 @@ public class CommandButton {
         this(
                 command,
                 command.getDescription(),
-                command.getDefaultParameter() == null
-                        ? Collections.emptyList()
-                        : Collections.singletonList(command.getDefaultParameter())
+                Collections.emptyList()
         );
     }
 

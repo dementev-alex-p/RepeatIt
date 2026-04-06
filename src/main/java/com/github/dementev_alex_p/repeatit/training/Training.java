@@ -1,6 +1,6 @@
 package com.github.dementev_alex_p.repeatit.training;
 
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.TrainingCard;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

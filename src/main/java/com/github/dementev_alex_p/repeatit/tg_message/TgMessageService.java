@@ -17,31 +17,17 @@ public class TgMessageService {
         tgMessageRepository.save(tgMessage);
     }
 
-    public Optional<TgMessage> findLastByUserId(final long userId) {
+    public Optional<TgMessage> findLastEditableByUserId(final long userId) {
         return tgMessageRepository.findLastAndNotDeletedByUserId(userId);
     }
 
-    public Optional<TgMessage> findLastEditableByUserId(final long userId) {
-        final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
-        return tgMessageRepository.findLastByUserIdAndCreatedAtLessThanAndNotDeleted(userId, tgRestrictionDateTime);
+    public List<TgMessage> findLastedCardsByUserIdOrderedByCreatedAtDesc(final long userId, final int limit) {
+        return tgMessageRepository.findLastedCardsByUserId(userId, limit);
     }
 
     public List<TgMessage> findNotDeletedMessagesByUserId(final long userId) {
         final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
         return tgMessageRepository.findNotDeletedByUserIdAndCreatedBefore(userId, tgRestrictionDateTime);
-    }
-
-    public Optional<TgMessage> findSecondToLastEditableByUserId(final long userId) {
-        final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
-        return tgMessageRepository.findSecondToLastByUserIdAndCreatedAtLessThanAndNotDeleted(userId, tgRestrictionDateTime);
-    }
-
-    public List<Integer> findTgMessageIdsForDeletion(final long chatId) {
-        final LocalDateTime tgRestrictionDateTime = LocalDateTime.now().minusHours(48);
-        return tgMessageRepository.findNotDeletedAndCreatedBeforeByChatId(chatId, tgRestrictionDateTime)
-                .stream()
-                .map(TgMessage::getTgMessageId)
-                .toList();
     }
 
     public void update(final TgMessage tgMessageToEdit) {

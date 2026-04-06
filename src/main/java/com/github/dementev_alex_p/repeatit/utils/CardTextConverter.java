@@ -1,7 +1,7 @@
 package com.github.dementev_alex_p.repeatit.utils;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 
 import java.util.Optional;
 

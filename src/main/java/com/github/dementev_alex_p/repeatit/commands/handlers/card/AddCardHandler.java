@@ -3,6 +3,7 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
@@ -33,11 +34,11 @@ public class AddCardHandler implements CommandHandler {
     public CommandResponse processCommand(MessageContext context) {
         final List<CommandLine> commandLines = Arrays.asList(
                 new CommandLine(Arrays.asList(
-                        new CommandButton(CommandEnum.CREATE_CARD),
+                        new CreateCardButton(),
                         new PublicCollectionsButton(CommandEnum.VIEW_COLLECTION_LIST.getDescription()),
                         new CommandButton(CommandEnum.IMPORT_CARDS)
                 )),
-                new CommandLine(new BackButton(CommandEnum.VIEW_CARD_LIST))
+                new CommandLine(new BackButton())
         );
         return CommandResponse
                 .builder()

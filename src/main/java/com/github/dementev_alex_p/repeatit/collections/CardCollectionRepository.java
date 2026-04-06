@@ -1,4 +1,4 @@
-package com.github.dementev_alex_p.repeatit.cards.collection;
+package com.github.dementev_alex_p.repeatit.collections;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

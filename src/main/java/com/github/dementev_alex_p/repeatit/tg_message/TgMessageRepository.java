@@ -10,20 +10,14 @@ import java.util.Optional;
 
 @Repository
 interface TgMessageRepository extends JpaRepository<TgMessage, Long> {
-    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt is NULL ORDER BY m.createdAt DESC LIMIT 1")
+    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt IS NULL ORDER BY m.createdAt DESC LIMIT 1")
     Optional<TgMessage> findLastAndNotDeletedByUserId(final long userId);
 
-    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.createdAt > :time AND m.deletedAt IS NULL ORDER BY m.createdAt DESC LIMIT 1")
-    Optional<TgMessage> findLastByUserIdAndCreatedAtLessThanAndNotDeleted(final long userId, final LocalDateTime time);
-
-    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.createdAt > :time AND m.deletedAt IS NULL ORDER BY m.createdAt DESC LIMIT 1 OFFSET 1")
-    Optional<TgMessage> findSecondToLastByUserIdAndCreatedAtLessThanAndNotDeleted(final long userId, final LocalDateTime time);
-
-    @Query("SELECT m FROM TgMessage m WHERE m.chatId = :chatId AND m.deletedAt is NULL AND m.createdAt > :time ORDER BY m.createdAt ASC")
-    List<TgMessage> findNotDeletedAndCreatedBeforeByChatId(final long chatId, final LocalDateTime time);
-
-    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt is NULL AND m.createdAt > :time ORDER BY m.createdAt ASC")
+    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt IS NULL AND m.createdAt > :time ORDER BY m.createdAt DESC")
     List<TgMessage> findNotDeletedByUserIdAndCreatedBefore(final long userId, final LocalDateTime time);
 
     List<TgMessage> findByTgMessageIdInAndDeletedAtIsNull(final List<Integer> messageIds);
+
+    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId ORDER BY m.createdAt DESC LIMIT :limit")
+    List<TgMessage> findLastedCardsByUserId(final long userId, final int limit);
 }

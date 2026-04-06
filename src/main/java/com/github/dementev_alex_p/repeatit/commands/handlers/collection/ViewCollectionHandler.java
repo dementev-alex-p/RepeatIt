@@ -2,13 +2,13 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 
 import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollection;
-import com.github.dementev_alex_p.repeatit.cards.collection.CardCollectionService;
+import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.AddPublicCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardWithCollectionId;
+import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardWithCollectionIdButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCollectionButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.EditCollectionTitleButton;
 import com.github.dementev_alex_p.repeatit.commands.buttons.NextCardsButton;
@@ -102,11 +102,11 @@ public class ViewCollectionHandler implements CommandHandler {
                 new CommandLine(new StudyCollectionButton(collection.getId())),
                 new CommandLine(new ViewCardsInCollectionButton(collection.getId())),
                 new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
-                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST)))
+                new CommandLine(new BackButton()))
                 : List.of(
-                new CommandLine(new CreateCardWithCollectionId(collection.getId())),
+                new CommandLine(new CreateCardWithCollectionIdButton(collection.getId())),
                 new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
-                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
+                new CommandLine(new BackButton())
         );
     }
 
@@ -124,8 +124,8 @@ public class ViewCollectionHandler implements CommandHandler {
         );
         final List<CommandLine> commandLines = Stream.of(
                 createCardNumbersLine(cards, page, totalCardCount, collection.getId()),
-                new CommandLine(new CreateCardWithCollectionId(collection.getId()), new SearchCardInCollectionButton()),
-                new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST))
+                new CommandLine(new CreateCardWithCollectionIdButton(collection.getId()), new SearchCardInCollectionButton()),
+                new CommandLine(new BackButton())
         ).toList();
 
         return CommandResponse
@@ -158,7 +158,7 @@ public class ViewCollectionHandler implements CommandHandler {
         createPaginationLine(cards, page, totalCardCount, collection.getId())
                 .ifPresent(lines::add);
         lines.add(new CommandLine(new AddPublicCollectionButton(collection.getId())));
-        lines.add(new CommandLine(new BackButton(CommandEnum.VIEW_COLLECTION_LIST, CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION))));
+        lines.add(new CommandLine(new BackButton()));
         return CommandResponse
                 .builder()
                 .text(messageText)

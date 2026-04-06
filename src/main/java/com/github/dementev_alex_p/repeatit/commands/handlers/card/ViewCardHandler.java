@@ -11,7 +11,6 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.EditCardFrontSideBut
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
-import com.github.dementev_alex_p.repeatit.training.TrainingService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
@@ -33,7 +32,6 @@ public class ViewCardHandler implements CommandHandler {
 
 
     private final CardService cardService;
-    private final TrainingService trainingService;
 
 
     @Override
@@ -49,7 +47,7 @@ public class ViewCardHandler implements CommandHandler {
         final List<CommandLine> commandLines = List.of(
                 createEditionCommandLine(card.getId()),
                 new CommandLine(new DeleteCardButton(card.getId())),
-                createBackButtonLine(context)
+                new CommandLine(new BackButton())
         );
 
         return CommandResponse
@@ -71,12 +69,7 @@ public class ViewCardHandler implements CommandHandler {
         return CommandParameterUtils.extractCardId(context);
     }
 
-    private CommandLine createBackButtonLine(final MessageContext context) {
-        final CommandEnum previousCommand = trainingService.findCurrentTraining(context.userId()).isPresent()
-                ? CommandEnum.TRAINING
-                : CommandEnum.VIEW_CARD_LIST;
-        return new CommandLine(new BackButton(previousCommand));
-    }
+
 
     private CommandLine createEditionCommandLine(final Long cardId) {
         return new CommandLine(
