@@ -5,18 +5,7 @@ import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.buttons.AddPublicCollectionButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardWithCollectionIdButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.DeleteCollectionButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.EditCollectionTitleButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.NextCardsButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCardsButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.SearchCardInCollectionButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.StudyCollectionButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardsInCollectionButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
@@ -47,6 +36,7 @@ public class ViewCollectionHandler implements CommandHandler {
             """;
     private static final String COLLECTION_CARD_HINT = "💡 Для редактирования карточки нажмите на ее номер";
     private static final String COLLECTION_CARD_COUNT_TEXT = "Карточек в коллекции: %d";
+    private static final String EXCLUSION_TEXT = "Важно! Коллекция исключена из тренировок. Вы можете снять исключение и тогда алгоритмы снова начнут добавлять карточки коллекции в тренировку";
     private static final String PUBLIC_COLLECTION_HINT = "💡 Вы можете добавить публичную коллекцию к себе для изучения";
     private static final int COUNT_CARDS_ON_PAGE = 5;
     private static final String CARD_DELIMITER = "—————————————————————\n";
@@ -87,7 +77,7 @@ public class ViewCollectionHandler implements CommandHandler {
                 COLLECTION_VIEW_TEXT,
                 collection.getName(),
                 String.format(COLLECTION_CARD_COUNT_TEXT, cardCount),
-                ""
+                collection.isExcludedFromTraining() ? EXCLUSION_TEXT : ""
         );
         return CommandResponse
                 .builder()
@@ -97,17 +87,22 @@ public class ViewCollectionHandler implements CommandHandler {
     }
 
     private List<CommandLine> createCommandLinesForView(final CardCollection collection, final int cardCount) {
-        return cardCount > 0
-                ? List.of(
-                new CommandLine(new StudyCollectionButton(collection.getId())),
-                new CommandLine(new ViewCardsInCollectionButton(collection.getId())),
-                new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
-                new CommandLine(new BackButton()))
-                : List.of(
-                new CommandLine(new CreateCardWithCollectionIdButton(collection.getId())),
-                new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())),
-                new CommandLine(new BackButton())
-        );
+        final List<CommandLine> commandLines = new ArrayList<>();
+        if (cardCount > 0) {
+            commandLines.add(new CommandLine(new StudyCollectionButton(collection.getId())));
+            commandLines.add(new CommandLine(new ViewCardsInCollectionButton(collection.getId())));
+            if (collection.isExcludedFromTraining()){
+                commandLines.add(new CommandLine(new CancelExclusionCollectionButton(collection.getId())));
+            } else {
+                commandLines.add(new CommandLine(new ExcludeCollectionFromTrainingButton(collection.getId())));
+            }
+        } else {
+            commandLines.add(new CommandLine(new CreateCardWithCollectionIdButton(collection.getId())));
+        }
+
+        commandLines.add(new CommandLine(new EditCollectionTitleButton(collection.getId()), new DeleteCollectionButton(collection.getId())));
+        commandLines.add(new CommandLine(new BackButton()));
+        return commandLines;
     }
 
     private CommandResponse viewLocalCollectionWithCards(final MessageContext context, final CardCollection collection) {

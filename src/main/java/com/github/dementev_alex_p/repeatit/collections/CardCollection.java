@@ -46,8 +46,8 @@ public class CardCollection {
     @Column(name = "parent_collection_id")
     private Long parentCollectionId;
 
-    @Column(name = "is_studying")
-    private boolean isStudying;
+    @Column(name = "is_excluded_from_training")
+    private boolean isExcludedFromTraining;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -63,7 +63,6 @@ public class CardCollection {
         this.name = name;
         this.parentCollectionId = parentCollectionId;
         this.isPublic = isPublic;
-        this.isStudying = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -71,7 +70,6 @@ public class CardCollection {
     public CardCollection(final long userId, final String name) {
         this.authorId = userId;
         this.name = name;
-        this.isStudying = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

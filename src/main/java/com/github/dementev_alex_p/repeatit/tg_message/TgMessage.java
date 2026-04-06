@@ -68,6 +68,7 @@ public class TgMessage {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "parameters", columnDefinition = "jsonb")
+    @ToString.Include
     private List<CommandParameter> commandParameters;
 
     public TgMessage(int tgMessageId, long userId, long chatId, CommandEnum command, String text, boolean isAnswerExcepted, final List<CommandParameter> commandParameters, boolean isChatClearRequired) {

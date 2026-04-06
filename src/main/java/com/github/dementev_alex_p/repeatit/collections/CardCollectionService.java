@@ -79,4 +79,18 @@ public class CardCollectionService {
     public CardCollection createCollection(final long userId, final String name) {
         return cardCollectionRepository.save(new CardCollection(userId, name));
     }
+
+    @Transactional
+    public void excludeFromTraining(final long collectionId) {
+        final CardCollection collection = findById(collectionId);
+        collection.setExcludedFromTraining(true);
+        cardCollectionRepository.save(collection);
+    }
+
+    @Transactional
+    public void removeExclusion(final long collectionId) {
+        final CardCollection collection = findById(collectionId);
+        collection.setExcludedFromTraining(false);
+        cardCollectionRepository.save(collection);
+    }
 }

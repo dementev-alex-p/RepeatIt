@@ -35,32 +35,19 @@ public class ViewCollectionListHandler implements CommandHandler {
             %s
             💡 Для перехода к коллекции нажмите на ее номер:
             """;
-    private static final String PUBLIC_COLLECTIONS_TEXT = """
-            <strong>Публичные коллекции</strong>
-            —————————————————————
-            Ниже публичные коллекции c %d по %d (всего %d)
-            %s
-            💡 Для просмотра карточек коллекции нажмите на ее номер:
-            """;
     private static final String ZERO_COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
             —————————————————————
             💡 Коллекции позволяют объединить карточки по темам и изучать их отдельно от остальных.
             Вы можете создать собственную коллекцию или добавить к себе публичную коллекцию.
             """;
-    private static final String ZERO_PUBLIC_COLLECTIONS_TEXT = """
-            <strong>Публичные коллекции</strong>
-            —————————————————————
-            Все публичные коллекции уже добавлены в вашу библиотеку!
-            """;
     private static final String VIEW_COLLECTION_TEXT = """
             %d. %s (карточек %d)
             ——————————
             """;
-    private static final int COUNT_COLLECTIONS_ON_PAGE = 5;
-    public static final String PUBLIC_COLLECTIONS_ACTION = "public_collections";
+    protected static final int COUNT_COLLECTIONS_ON_PAGE = 5;
 
-    private final CardCollectionService cardCollectionService;
+    protected final CardCollectionService cardCollectionService;
 
     @Override
     public CommandEnum getCommand() {
@@ -69,14 +56,6 @@ public class ViewCollectionListHandler implements CommandHandler {
 
     @Override
     public CommandResponse processCommand(MessageContext context) {
-        if (isPublicCollectionView(context)) {
-            return viewPublicCollections(context);
-        } else {
-            return viewUserCollections(context);
-        }
-    }
-
-    private CommandResponse viewUserCollections(final MessageContext context) {
         final int userCollectionsCount = cardCollectionService.findCountByAuthorId(context.userId());
         if (userCollectionsCount == 0) {
             return sendZeroCollectionMessage();
@@ -90,7 +69,7 @@ public class ViewCollectionListHandler implements CommandHandler {
             final int lastNumber = firstNumber + userCollections.size() - 1;
 
             final List<CommandLine> commandLines = Arrays.asList(
-                    createNumberButtons(userCollections, userCollectionsCount, page, false),
+                    createNumberButtons(userCollections, userCollectionsCount, page),
                     new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                     new CommandLine(new PublicCollectionsButton()),
                     new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
@@ -113,50 +92,16 @@ public class ViewCollectionListHandler implements CommandHandler {
         return CommandResponse.builder().text(ZERO_COLLECTIONS_TEXT).availableCommands(lines).build();
     }
 
-    private CommandResponse viewPublicCollections(final MessageContext context) {
-        final int publicCollectionsCount = cardCollectionService.findCountPublicAvailableForUser(context.userId());
-        if (publicCollectionsCount == 0) {
-            return CommandResponse
-                    .builder()
-                    .text(ZERO_PUBLIC_COLLECTIONS_TEXT)
-                    .availableCommands(List.of(new CommandLine(new BackButton())))
-                    .build();
-        }
-        final int page = CommandParameterUtils.extractPage(context);
-        final List<CardCollection> publicCollections = cardCollectionService.findPublicAvailableForUser(
-                context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE
-        );
-        final int firstNumber = (page - 1) * COUNT_COLLECTIONS_ON_PAGE + 1;
-        final int lastNumber = firstNumber + publicCollections.size() - 1;
 
-        final List<CommandLine> commandLines = Arrays.asList(
-                createNumberButtons(publicCollections, publicCollectionsCount, page, true),
-                new CommandLine(new BackButton())
-        );
-
-        return CommandResponse
-                .builder()
-                .text(String.format(PUBLIC_COLLECTIONS_TEXT, firstNumber, lastNumber, publicCollectionsCount, covertToString(publicCollections)))
-                .availableCommands(commandLines)
-                .build();
-    }
-
-    private boolean isPublicCollectionView(final MessageContext context) {
-        return CommandParameterUtils.extractNullableAction(context)
-                .filter(PUBLIC_COLLECTIONS_ACTION::equals)
-                .isPresent();
-    }
-
-    private CommandLine createNumberButtons(
+    protected CommandLine createNumberButtons(
             final List<CardCollection> userCollections,
             final int totalUserCollections,
-            final int pageNumber,
-            final boolean isPublic
+            final int pageNumber
     ) {
         final ArrayList<CommandButton> commandButtons = new ArrayList<>();
 
         if (pageNumber > 1) {
-            commandButtons.add(new PreviousCollectionsButton(pageNumber - 1, isPublic));
+            commandButtons.add(new PreviousCollectionsButton(pageNumber - 1, getCommand()));
         }
         final AtomicInteger number = new AtomicInteger();
         commandButtons.addAll(userCollections
@@ -165,13 +110,13 @@ public class ViewCollectionListHandler implements CommandHandler {
                 .toList()
         );
         if (totalUserCollections > COUNT_COLLECTIONS_ON_PAGE * pageNumber) {
-            commandButtons.add(new NextCollectionsButton(pageNumber + 1, isPublic));
+            commandButtons.add(new NextCollectionsButton(pageNumber + 1, getCommand()));
         }
 
         return new CommandLine(commandButtons);
     }
 
-    private String covertToString(final List<CardCollection> userCollections) {
+    protected String covertToString(final List<CardCollection> userCollections) {
         final AtomicInteger number = new AtomicInteger();
         return userCollections
                 .stream()

@@ -8,14 +8,11 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class PreviousCollectionsButton extends CommandButton {
-    public PreviousCollectionsButton(final int page, final boolean isPublic) {
+    public PreviousCollectionsButton(final int page, final CommandEnum command) {
         super(
-                CommandEnum.VIEW_COLLECTION_LIST,
+                command,
                 "<<",
-                isPublic ? Arrays.asList(
-                        CommandParameterUtils.createPageParameter(page),
-                        CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION)
-                ) : Collections.singletonList(CommandParameterUtils.createPageParameter(page))
+                Collections.singletonList(CommandParameterUtils.createPageParameter(page))
 
         );
     }

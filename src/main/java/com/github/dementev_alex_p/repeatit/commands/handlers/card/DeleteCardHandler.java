@@ -88,7 +88,7 @@ public class DeleteCardHandler implements CommandHandler {
             final CommandResponse commandResponse = viewCardListHandler.processCommand(context);
             return commandResponse
                     .withAlter(DELETION_TEXT)
-                    .withCommand(CommandEnum.VIEW_CARD);
+                    .withCommand(CommandEnum.VIEW_CARD_LIST);
         }
 
     }

@@ -6,18 +6,12 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 
 public class PublicCollectionsButton extends CommandButton {
     public PublicCollectionsButton() {
-        super(CommandEnum.VIEW_COLLECTION_LIST,
-                "Публичные коллекции",
-                CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION),
-                CommandParameterUtils.createPageParameter(1)
-        );
+        super(CommandEnum.VIEW_PUBLIC_COLLECTION_LIST);
     }
 
     public PublicCollectionsButton(final String name) {
-        super(CommandEnum.VIEW_COLLECTION_LIST,
-                name,
-                CommandParameterUtils.createActionParameter(ViewCollectionListHandler.PUBLIC_COLLECTIONS_ACTION),
-                CommandParameterUtils.createPageParameter(1)
+        super(CommandEnum.VIEW_PUBLIC_COLLECTION_LIST,
+                name
         );
     }
 }

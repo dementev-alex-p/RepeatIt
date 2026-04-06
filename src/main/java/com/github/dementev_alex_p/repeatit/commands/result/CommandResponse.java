@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @Getter
+@ToString
 public class CommandResponse {
 
     /**

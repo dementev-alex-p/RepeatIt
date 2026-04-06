@@ -2,6 +2,7 @@ package com.github.dementev_alex_p.repeatit.message_context;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import jakarta.validation.constraints.NotNull;
+import lombok.ToString;
 import lombok.With;
 
 import java.util.Map;

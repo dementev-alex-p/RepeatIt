@@ -22,9 +22,10 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
     @Query(
             """
             SELECT cc FROM CardCollection cc
+            LEFT JOIN CardCollection cc1 ON cc.id = cc1.parentCollectionId AND cc1.authorId = :userId AND cc1.deletedAt IS NULL
             WHERE cc.isPublic = true
             AND cc.authorId != :userId
-            AND cc.id NOT IN (SELECT cc1.parentCollectionId FROM CardCollection cc1 WHERE cc1.authorId = :userId)
+            AND cc1.id IS NULL
             ORDER BY cc.createdAt ASC
             LIMIT :limit
             OFFSET :offset
@@ -35,9 +36,10 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
     @Query(
             """
             SELECT COUNT(cc) FROM CardCollection cc
+            LEFT JOIN CardCollection cc1 ON cc.id = cc1.parentCollectionId AND cc1.authorId = :userId AND cc1.deletedAt IS NULL
             WHERE cc.isPublic = true
             AND cc.authorId != :userId
-            AND cc.id NOT IN (SELECT cc1.parentCollectionId FROM CardCollection cc1 WHERE cc1.authorId = :userId)
+            AND cc1.id IS NULL
             """
     )
     int findCountPublicAvailableForUser(final long userId);

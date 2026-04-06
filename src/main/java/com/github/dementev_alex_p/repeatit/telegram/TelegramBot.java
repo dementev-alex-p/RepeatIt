@@ -112,14 +112,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         execute(new DeleteMessage(String.valueOf(chatId), messageId));
     }
 
-    private void answerToCallback(final String callbackId, @Nullable final String alert) throws TelegramApiException {
-        execute(AnswerCallbackQuery
-                .builder()
-                .callbackQueryId(callbackId)
-                .text(alert)
-                .showAlert(alert != null)
-                .build()
-        );
+    private void answerToCallback(final String callbackId, @Nullable final String alert)  {
+        try {
+            execute(AnswerCallbackQuery
+                    .builder()
+                    .callbackQueryId(callbackId)
+                    .text(alert)
+                    .showAlert(alert != null)
+                    .build()
+            );
+        } catch (TelegramApiException e) {
+            log.error("ERROR. В момент ответа на callback произошла ошибка", e);
+        }
     }
 
     private void deleteMessages(final long chatId, final List<TgMessage> messages) throws TelegramApiException {
@@ -202,10 +206,11 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         if (response.getText().equals(lastMessages.getMessageText())) {
-            //Новое сообщение идентично предыдущему, изменение не требуется
-            return;
+            throw new RuntimeException(String.format(
+                    "Новое сообщение идентично предыдущему. LastMessage = \n%s\n newMessage = \n%s\n context = \n%s",
+                    lastMessages, response, context
+            ));
         }
-
         final int tgMessageId = lastMessages.getTgMessageId();
         final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(response.getAvailableCommands());
 

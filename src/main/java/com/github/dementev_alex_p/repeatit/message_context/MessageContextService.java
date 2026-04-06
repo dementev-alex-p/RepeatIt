@@ -108,14 +108,14 @@ public class MessageContextService {
     }
 
     private Command determinateCommandFromLastMessage(final long userId) {
-        final List<TgMessage> lastedOrderedMessages = tgMessageService.findLastedCardsByUserIdOrderedByCreatedAtDesc(userId, 10);
+        final List<TgMessage> lastedOrderedMessages = tgMessageService.findLastedCardsByUserIdOrderedByCreatedAtDesc(userId, 20);
         if (lastedOrderedMessages.isEmpty()) {
             return new Command(CommandEnum.MAIN_MENU, new HashMap<>());
         }
         final int lastMessageLevel = lastedOrderedMessages.get(0).getCommand().getHierarchyLevel();
         return lastedOrderedMessages
                 .stream()
-                .filter(message -> message.getCommand().getHierarchyLevel() > lastMessageLevel)
+                .filter(message -> message.getCommand().getHierarchyLevel() < lastMessageLevel)
                 .findFirst()
                 .map(message -> new Command(message.getCommand(), extractCommandParametersFromMessage(message)))
                 .orElse(new Command(CommandEnum.MAIN_MENU, new HashMap<>()));
