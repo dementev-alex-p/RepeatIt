@@ -8,8 +8,8 @@ public class CreateCardButton extends CommandButton {
     public CreateCardButton() {
         super(
                 CommandEnum.CREATE_CARD,
-                "➕ Создать карточку",
-                CommandParameterUtils.createActionParameter(START_ACTION_CODE)
+                "➕ Создать",
+                CommandParameterUtils.createAction(START_ACTION_CODE)
         );
     }
 }

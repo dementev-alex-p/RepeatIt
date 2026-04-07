@@ -24,7 +24,7 @@ public class CommandParameterUtils {
         return new CommandParameter(COLLECTION_PARAMETER_CODE, String.valueOf(collectionId));
     }
 
-    public static CommandParameter createActionParameter(final String action) {
+    public static CommandParameter createAction(final String action) {
         return new CommandParameter(ACTION_PARAMETER_CODE, action);
     }
 

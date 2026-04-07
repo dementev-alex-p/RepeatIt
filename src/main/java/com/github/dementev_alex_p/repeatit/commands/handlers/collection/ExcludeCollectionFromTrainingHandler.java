@@ -55,7 +55,7 @@ public class ExcludeCollectionFromTrainingHandler implements CommandHandler {
                 new CommandButton(
                         CommandEnum.EXCLUDE_COLLECTION_FROM_TRAINING,
                         CommandEnum.EXCLUDE_COLLECTION_FROM_TRAINING.getDescription(),
-                        CommandParameterUtils.createActionParameter(CONFIRM_ACTION),
+                        CommandParameterUtils.createAction(CONFIRM_ACTION),
                         CommandParameterUtils.createCollectionIdParameter(collectionId)
                 ),
                 new BackButton()

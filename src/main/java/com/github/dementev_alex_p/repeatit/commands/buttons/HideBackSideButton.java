@@ -9,7 +9,7 @@ public class HideBackSideButton extends CommandButton {
         super(
                 CommandEnum.TRAINING,
                 TEXT,
-                CommandParameterUtils.createActionParameter("hide_back_side"),
+                CommandParameterUtils.createAction("hide_back_side"),
                 CommandParameterUtils.createCardIdParameter(cardId)
         );
     }

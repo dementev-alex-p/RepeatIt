@@ -1,6 +1,7 @@
 package com.github.dementev_alex_p.repeatit.cards;
 
 import com.github.dementev_alex_p.repeatit.collections.CardCollection;
+import com.github.dementev_alex_p.repeatit.commands.handlers.GenerateCardsHandler;
 import com.github.dementev_alex_p.repeatit.training.trainig_cards.RecallScoreEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -145,5 +146,13 @@ public class CardService {
         final Card card = cardRepository.findById(cardId).orElseThrow();
         card.setCardCollection(collection);
         cardRepository.save(card);
+    }
+
+    public void createCards(final long userId, final CardCollection collection, final List<GenerateCardsHandler.GeneratedCard> generatedCards) {
+        final List<Card> cards = generatedCards
+                .stream()
+                .map(card -> new Card(card.front(), card.back(), userId, collection))
+                .toList();
+        cardRepository.saveAll(cards);
     }
 }

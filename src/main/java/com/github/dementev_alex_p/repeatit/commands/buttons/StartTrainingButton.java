@@ -8,6 +8,6 @@ public class StartTrainingButton extends CommandButton {
     public StartTrainingButton() {
         super(CommandEnum.TRAINING,
                 CommandEnum.TRAINING.getDescription(),
-                CommandParameterUtils.createActionParameter(ACTION_CODE));
+                CommandParameterUtils.createAction(ACTION_CODE));
     }
 }

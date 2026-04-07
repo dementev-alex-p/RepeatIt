@@ -10,7 +10,7 @@ public class PreviousCardsButton extends CommandButton {
                 "<<",
                 CommandParameterUtils.createPageParameter(page),
                 CommandParameterUtils.createCollectionIdParameter(collectionId),
-                CommandParameterUtils.createActionParameter(ViewCardsInCollectionButton.VIEW_CARDS_ACTION)
+                CommandParameterUtils.createAction(ViewCardsInCollectionButton.VIEW_CARDS_ACTION)
         );
     }
 }

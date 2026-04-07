@@ -119,6 +119,7 @@ public class ViewCollectionHandler implements CommandHandler {
         );
         final List<CommandLine> commandLines = Stream.of(
                 createCardNumbersLine(cards, page, totalCardCount, collection.getId()),
+                new CommandLine(new StudyCollectionButton(collection.getId())),
                 new CommandLine(new CreateCardWithCollectionIdButton(collection.getId()), new SearchCardInCollectionButton()),
                 new CommandLine(new BackButton())
         ).toList();

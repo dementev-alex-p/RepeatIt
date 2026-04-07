@@ -63,7 +63,7 @@ public class TrainingCommandHandler implements CommandHandler {
             ⏳ вспомнили с трудом: %d
             ❓ не удалось вспомнить: %d
             """;
-    private static final String COLLECTION_NAME = "<strong>Коллекция</strong>: %s";
+    private static final String COLLECTION_NAME = "<strong>Коллекция</strong>: %s\n";
     public static final String START_ACTION_CODE = "start";
     public static final String SHOW_BACK_SIDE = "show_back_side";
 

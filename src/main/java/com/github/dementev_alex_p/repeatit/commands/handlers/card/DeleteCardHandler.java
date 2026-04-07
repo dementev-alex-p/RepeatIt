@@ -59,7 +59,7 @@ public class DeleteCardHandler implements CommandHandler {
                 new CommandButton(
                         CommandEnum.DELETE_CARD,
                         CommandEnum.DELETE_CARD.getDescription(),
-                        CommandParameterUtils.createActionParameter(CONFIRMED_DELETION_ACTION),
+                        CommandParameterUtils.createAction(CONFIRMED_DELETION_ACTION),
                         CommandParameterUtils.createCardIdParameter(cardId)
                 ),
                 new BackButton()

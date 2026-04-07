@@ -13,7 +13,7 @@ public class SkipCollectionButton extends CommandButton {
                 CommandEnum.EDIT_CARD_COLLECTION,
                 TEXT,
                 Arrays.asList(
-                    CommandParameterUtils.createActionParameter(ACTION_VALUE),
+                    CommandParameterUtils.createAction(ACTION_VALUE),
                     CommandParameterUtils.createCardIdParameter(cardId)
                 )
         );

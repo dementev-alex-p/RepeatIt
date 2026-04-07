@@ -8,6 +8,6 @@ public class FinishTrainingButton extends CommandButton {
     public FinishTrainingButton() {
         super(CommandEnum.TRAINING,
                 "Завершить тренировку",
-                CommandParameterUtils.createActionParameter(ACTION_CODE));
+                CommandParameterUtils.createAction(ACTION_CODE));
     }
 }

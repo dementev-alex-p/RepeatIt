@@ -11,7 +11,7 @@ public class ViewCardsInCollectionButton extends CommandButton {
         super(
                 CommandEnum.VIEW_COLLECTION,
                 "📘 Просмотр карточек",
-                CommandParameterUtils.createActionParameter(VIEW_CARDS_ACTION),
+                CommandParameterUtils.createAction(VIEW_CARDS_ACTION),
                 CommandParameterUtils.createCollectionIdParameter(collectionId)
         );
     }

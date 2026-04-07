@@ -9,7 +9,7 @@ public class ShowBackSideButton extends CommandButton {
         super(
                 CommandEnum.TRAINING,
                 TEXT,
-                CommandParameterUtils.createActionParameter("show_back_side"),
+                CommandParameterUtils.createAction("show_back_side"),
                 CommandParameterUtils.createCardIdParameter(cardId)
         );
     }

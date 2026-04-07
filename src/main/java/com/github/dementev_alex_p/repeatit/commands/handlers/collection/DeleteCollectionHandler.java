@@ -52,7 +52,7 @@ public class DeleteCollectionHandler implements CommandHandler {
                 new CommandButton(
                         CommandEnum.DELETE_COLLECTION,
                         CommandEnum.DELETE_COLLECTION.getDescription(),
-                        CommandParameterUtils.createActionParameter(CONFIRMED_DELETION_ACTION),
+                        CommandParameterUtils.createAction(CONFIRMED_DELETION_ACTION),
                         CommandParameterUtils.createCollectionIdParameter(collectionId)
                 ),
                 new BackButton()

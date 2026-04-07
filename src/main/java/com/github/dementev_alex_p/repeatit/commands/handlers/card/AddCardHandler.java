@@ -1,10 +1,7 @@
 package com.github.dementev_alex_p.repeatit.commands.handlers.card;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CreateCardButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
@@ -22,7 +19,7 @@ public class AddCardHandler implements CommandHandler {
             —————————————————————
             - Для создания карточки нажмите "➕ Создать"
             - Для добавления карточек из публичных коллекций нажмите "📚 Коллекции"
-            - Для импорта карточек  "📥 Импорт"
+            - Для генерации карточек на любую интересующую вас тему нажмите  "📥 Генерация"
             """;
 
     @Override
@@ -36,7 +33,7 @@ public class AddCardHandler implements CommandHandler {
                 new CommandLine(Arrays.asList(
                         new CreateCardButton(),
                         new PublicCollectionsButton(CommandEnum.VIEW_COLLECTION_LIST.getDescription()),
-                        new CommandButton(CommandEnum.IMPORT_CARDS)
+                        new GenerateCardsButton()
                 )),
                 new CommandLine(new BackButton())
         );

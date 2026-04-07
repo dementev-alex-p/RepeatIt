@@ -9,7 +9,7 @@ public class CreateCardWithCollectionIdButton extends CommandButton {
         super(
                 CommandEnum.CREATE_CARD,
                 "➕ Создать карточку",
-                CommandParameterUtils.createActionParameter(CreateCardButton.START_ACTION_CODE),
+                CommandParameterUtils.createAction(CreateCardButton.START_ACTION_CODE),
                 CommandParameterUtils.createCollectionIdParameter(collectionId)
         );
     }

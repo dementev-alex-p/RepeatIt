@@ -11,7 +11,7 @@ public class StudyCollectionButton extends CommandButton {
                 CommandEnum.TRAINING,
                 "\uD83C\uDFC6 Изучать",
                 CommandParameterUtils.createCollectionIdParameter(collectionId),
-                CommandParameterUtils.createActionParameter(TrainingCommandHandler.START_ACTION_CODE)
+                CommandParameterUtils.createAction(TrainingCommandHandler.START_ACTION_CODE)
         );
     }
 
