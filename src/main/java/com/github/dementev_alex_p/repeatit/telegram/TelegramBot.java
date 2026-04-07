@@ -206,10 +206,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         if (response.getText().equals(lastMessages.getMessageText())) {
-            throw new RuntimeException(String.format(
-                    "Новое сообщение идентично предыдущему. LastMessage = \n%s\n newMessage = \n%s\n context = \n%s",
-                    lastMessages, response, context
-            ));
+            log.info(
+                    "Новое сообщение идентично предыдущему. message = \n{}\n context = \n{}",
+                    response, context
+            );
         }
         final int tgMessageId = lastMessages.getTgMessageId();
         final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(response.getAvailableCommands());
