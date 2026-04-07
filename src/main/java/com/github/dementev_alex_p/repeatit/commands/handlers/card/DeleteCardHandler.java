@@ -29,14 +29,14 @@ public class DeleteCardHandler implements CommandHandler {
             <strong>Удаление карточки</strong>
             —————————————————————
             %s
-            Вы уверены, что хотите удалить карточку?
+            ⚠ Вы уверены, что хотите удалить карточку?
             """;
     private static final String DELETION_TEXT = "Карточка успешно удалена!";
     private static final String CONFIRMED_DELETION_ACTION = "confirmed_deletion";
     private final CardService cardService;
     private final TrainingService trainingService;
     private final TrainingCommandHandler trainingCommandHandler;
-    private final ViewCardListHandler viewCardListHandler;
+    private final ViewCardMenuHandler viewCardMenuHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -85,10 +85,10 @@ public class DeleteCardHandler implements CommandHandler {
                     .withAlter(DELETION_TEXT)
                     .withCommand(CommandEnum.TRAINING);
         } else {
-            final CommandResponse commandResponse = viewCardListHandler.processCommand(context);
+            final CommandResponse commandResponse = viewCardMenuHandler.processCommand(context);
             return commandResponse
                     .withAlter(DELETION_TEXT)
-                    .withCommand(CommandEnum.VIEW_CARD_LIST);
+                    .withCommand(CommandEnum.VIEW_CARD_MENU);
         }
 
     }

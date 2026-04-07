@@ -44,7 +44,7 @@ public class ViewMainMenuHandler implements CommandHandler {
             ));
             final List<CommandLine> commandLines = List.of(
                     new CommandLine(new StartTrainingButton()),
-                    new CommandLine(CommandEnum.VIEW_CARD_LIST),
+                    new CommandLine(CommandEnum.VIEW_CARD_MENU),
                     new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
             );
             return CommandResponse
@@ -55,7 +55,7 @@ public class ViewMainMenuHandler implements CommandHandler {
         }
         final int countForDailyTraining = cardService.findCountForDailyTrainingByUserId(context.userId());
         final List<CommandLine> commandLines = List.of(new CommandLine(new StartTrainingButton()),
-                new CommandLine(CommandEnum.VIEW_CARD_LIST),
+                new CommandLine(CommandEnum.VIEW_CARD_MENU),
                 new CommandLine(CommandEnum.VIEW_COLLECTION_LIST)
         );
         return CommandResponse

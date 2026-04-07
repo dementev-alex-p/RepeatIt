@@ -2,6 +2,7 @@ package com.github.dementev_alex_p.repeatit.telegram;
 
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.CommandParameter;
+import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
@@ -147,7 +148,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             return CommandResponse
                     .builder()
                     .text("Произошла ошибка!" + e.getMessage())
-                    .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))))
+                    .availableCommands(List.of(new CommandLine(new BackButton())))
                     .build();
         }
     }

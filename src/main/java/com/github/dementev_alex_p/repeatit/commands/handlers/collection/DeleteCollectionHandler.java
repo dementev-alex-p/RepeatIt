@@ -4,6 +4,7 @@ import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.ExcludeCollectionFromTrainingButton;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +26,9 @@ public class DeleteCollectionHandler implements CommandHandler {
             —————————————————————
             Название: %s
             
-            Вы уверены, что хотите удалить коллекцию?
+            ⚠ Вы уверены, что хотите удалить коллекцию?
+            Вместе с коллекцией так же удалятся все ее карточки и прогресс по ним.
+            Если вы хотите временно приостановить изучение коллекции, то воспользуйтесь "Исключить из тренировок"
             """;
     private static final String CONFIRMED_DELETION_ACTION = "confirmed_deletion";
     private static final String DELETION_TEXT = "Коллекция успешно удалена!";
@@ -48,19 +52,21 @@ public class DeleteCollectionHandler implements CommandHandler {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
         final CardCollection collection = cardCollectionService.findById(collectionId);
         final String message = String.format(CONFIRM_TEXT, collection.getName());
-        final CommandLine commandLine = new CommandLine(
+        final List<CommandLine> commandLines = Stream.of(
                 new CommandButton(
                         CommandEnum.DELETE_COLLECTION,
                         CommandEnum.DELETE_COLLECTION.getDescription(),
                         CommandParameterUtils.createAction(CONFIRMED_DELETION_ACTION),
                         CommandParameterUtils.createCollectionIdParameter(collectionId)
                 ),
+                new ExcludeCollectionFromTrainingButton(collectionId),
                 new BackButton()
-        );
+        ).map(CommandLine::new).toList();
+
         return CommandResponse
                 .builder()
                 .text(message)
-                .availableCommands(List.of(commandLine))
+                .availableCommands(commandLines)
                 .build();
     }
 

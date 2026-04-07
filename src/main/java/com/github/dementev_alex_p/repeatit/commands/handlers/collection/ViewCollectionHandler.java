@@ -36,7 +36,7 @@ public class ViewCollectionHandler implements CommandHandler {
             """;
     private static final String COLLECTION_CARD_HINT = "💡 Для редактирования карточки нажмите на ее номер";
     private static final String COLLECTION_CARD_COUNT_TEXT = "Карточек в коллекции: %d";
-    private static final String EXCLUSION_TEXT = "Важно! Коллекция исключена из тренировок. Вы можете снять исключение и тогда алгоритмы снова начнут добавлять карточки коллекции в тренировку";
+    private static final String EXCLUSION_TEXT = "\n⚠ Коллекция исключена из тренировок. Вы можете снять исключение и тогда алгоритмы снова начнут добавлять карточки коллекции в тренировку";
     private static final String PUBLIC_COLLECTION_HINT = "💡 Вы можете добавить публичную коллекцию к себе для изучения";
     private static final int COUNT_CARDS_ON_PAGE = 5;
     private static final String CARD_DELIMITER = "—————————————————————\n";

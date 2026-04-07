@@ -6,6 +6,7 @@ import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.*;
+import com.github.dementev_alex_p.repeatit.commands.handlers.card.ViewCardMenuHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.*;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.training.Training;
@@ -71,6 +72,7 @@ public class TrainingCommandHandler implements CommandHandler {
     public final TrainingCardService trainingCardService;
     public final CardService cardService;
     public final CardCollectionService cardCollectionService;
+    public final ViewCardMenuHandler viewCardMenuHandler;
 
     @Override
     public CommandEnum getCommand() {
@@ -249,7 +251,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 : createDalyTraining(context);
 
         if (trainingStarterPack == null) {
-            return sendNotFoundCardResponse();
+            return sendNotFoundCardResponse(context);
         }
 
         final Training training = trainingStarterPack.training;
@@ -308,15 +310,11 @@ public class TrainingCommandHandler implements CommandHandler {
         return new TrainingStarterPack(training, firstCard);
     }
 
-    private CommandResponse sendNotFoundCardResponse() {
-        return CommandResponse
-                .builder()
-                .text(NOT_FOUND_CARDS_FOR_TRAINING)
-                .availableCommands(List.of(
-                        new CommandLine(new CommandButton(CommandEnum.ADD_CARD)),
-                        new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
-                ))
-                .build();
+    private CommandResponse sendNotFoundCardResponse(final MessageContext context) {
+        return viewCardMenuHandler
+                .processCommand(context)
+                .withCommand(CommandEnum.VIEW_CARD_MENU)
+                .withAlter(NOT_FOUND_CARDS_FOR_TRAINING);
     }
 
     private List<CommandLine> createCommandLineForCard(final Card card) {

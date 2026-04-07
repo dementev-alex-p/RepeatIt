@@ -2,7 +2,6 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.dementev_alex_p.repeatit.cards.Card;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
@@ -13,7 +12,6 @@ import com.github.dementev_alex_p.repeatit.commands.buttons.ViewCardsInCollectio
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
-import com.github.dementev_alex_p.repeatit.users.UserService;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;

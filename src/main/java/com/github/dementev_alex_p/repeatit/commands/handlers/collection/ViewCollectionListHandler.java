@@ -72,7 +72,7 @@ public class ViewCollectionListHandler implements CommandHandler {
                     createNumberButtons(userCollections, userCollectionsCount, page),
                     new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                     new CommandLine(new PublicCollectionsButton()),
-                    new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
+                    new CommandLine(new BackButton())
             );
 
             return CommandResponse
@@ -87,7 +87,7 @@ public class ViewCollectionListHandler implements CommandHandler {
         final List<CommandLine> lines = List.of(
                 new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                 new CommandLine(new PublicCollectionsButton()),
-                new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))
+                new CommandLine(new BackButton())
         );
         return CommandResponse.builder().text(ZERO_COLLECTIONS_TEXT).availableCommands(lines).build();
     }
