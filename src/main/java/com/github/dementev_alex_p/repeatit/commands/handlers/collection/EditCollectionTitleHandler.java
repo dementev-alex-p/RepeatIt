@@ -8,6 +8,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.utils.CollectionTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,7 +53,7 @@ public class EditCollectionTitleHandler implements CommandHandler {
         final List<CommandLine> commandLines = List.of(new CommandLine(new BackButton()));
         return CommandResponse
                 .builder()
-                .text(String.format(TITLE_EDITION_TEXT, collection.getName()))
+                .text(String.format(TITLE_EDITION_TEXT, CollectionTextConverter.convert(collection)))
                 .availableCommands(commandLines)
                 .isAnswerExcepted(true)
                 .build();

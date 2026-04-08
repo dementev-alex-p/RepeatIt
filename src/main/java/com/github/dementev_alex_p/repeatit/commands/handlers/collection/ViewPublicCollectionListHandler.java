@@ -4,19 +4,14 @@ import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.*;
-import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Component
 public class ViewPublicCollectionListHandler extends ViewCollectionListHandler {
@@ -24,10 +19,12 @@ public class ViewPublicCollectionListHandler extends ViewCollectionListHandler {
     private static final String PUBLIC_COLLECTIONS_TEXT = """
             <strong>Публичные коллекции</strong>
             —————————————————————
+            Вы можете добавить любую публичную коллекцию к себе
+            
             Ниже публичные коллекции c %d по %d (всего %d)
             
             %s
-            💡 Для просмотра карточек коллекции нажмите на ее номер:
+            💡 Для того, что бы перейти в коллекцию, нажмите на ее номер:
             """;
 
     private static final String ZERO_PUBLIC_COLLECTIONS_TEXT = """
@@ -56,9 +53,9 @@ public class ViewPublicCollectionListHandler extends ViewCollectionListHandler {
                     .build();
         }
         final int page = CommandParameterUtils.extractPage(context);
-        final List<CardCollection> publicCollections = cardCollectionService.findPublicAvailableForUser(
-                context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE
-        );
+        final List<CardCollection> publicCollections = cardCollectionService
+                .findPublicAvailableForUser(context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE);
+
         final int firstNumber = (page - 1) * COUNT_COLLECTIONS_ON_PAGE + 1;
         final int lastNumber = firstNumber + publicCollections.size() - 1;
 

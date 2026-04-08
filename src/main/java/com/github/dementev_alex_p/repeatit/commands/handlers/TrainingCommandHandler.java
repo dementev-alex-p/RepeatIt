@@ -51,7 +51,7 @@ public class TrainingCommandHandler implements CommandHandler {
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
     private static final String NEXT_CARD_TEXT = """
             Карточка %d
-            —————————————————————
+            ————————————————
             %s
             """;
     private static final String END_TRAINING = """
@@ -233,10 +233,18 @@ public class TrainingCommandHandler implements CommandHandler {
                 statistic.getOrDefault(RecallScoreEnum.DIFFICULT_RECALL, 0L),
                 statistic.getOrDefault(RecallScoreEnum.FAIL_RECALL, 0L)
         );
+        final CommandButton commandButton = Optional
+                .ofNullable(training.getStudiedCollection())
+                .map(c -> new CommandButton(
+                        CommandEnum.VIEW_COLLECTION,
+                        "📚 Вернуться к коллекции",
+                        CommandParameterUtils.createCollectionIdParameter(c.getId()))
+                ).orElseGet(() -> new CommandButton(CommandEnum.MAIN_MENU));
+
         return CommandResponse
                 .builder()
                 .text(statisticText)
-                .availableCommands(List.of(new CommandLine(new CommandButton(CommandEnum.MAIN_MENU))))
+                .availableCommands(List.of(new CommandLine(commandButton)))
                 .isChatClearRequired(true)
                 .build();
     }
@@ -360,5 +368,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 .map(c -> String.format(COLLECTION_NAME, c.getName()))
                 .orElse("");
     }
-    private record TrainingStarterPack (Training training, Card firstCard){}
+
+    private record TrainingStarterPack(Training training, Card firstCard) {
+    }
 }

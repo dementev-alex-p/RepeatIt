@@ -9,6 +9,7 @@ import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
+import com.github.dementev_alex_p.repeatit.utils.CollectionTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,7 @@ public class ExcludeCollectionFromTrainingHandler implements CommandHandler {
     private static final String CONFIRM_TEXT = """
             <strong>Исключение коллекции из тренировки</strong>
             —————————————————————
-            Название: <code>%s</code>
-            
+            %s
             ⚠ Вы уверены, что хотите исключить коллекцию?
             Карточки исключенных коллекций не попадают в состав тренировок.
             Вы всегда сможете снять исключение, тогда алгоритмы снова начнут добавлять карточки коллекции в тренировки.
@@ -50,7 +50,7 @@ public class ExcludeCollectionFromTrainingHandler implements CommandHandler {
     private CommandResponse sendConfirmation(final MessageContext context) {
         final long collectionId = CommandParameterUtils.extractCollectionId(context);
         final CardCollection collection = cardCollectionService.findById(collectionId);
-        final String message = String.format(CONFIRM_TEXT, collection.getName());
+        final String message = String.format(CONFIRM_TEXT, CollectionTextConverter.convert(collection));
         final CommandLine commandLine = new CommandLine(
                 new CommandButton(
                         CommandEnum.EXCLUDE_COLLECTION_FROM_TRAINING,

@@ -10,7 +10,7 @@ import java.util.List;
 public interface CardCollectionRepository extends JpaRepository<CardCollection, Long> {
 
     @Query("""
-    SELECT c FROM CardCollection c WHERE c.authorId = :authorId ORDER BY c.updatedAt LIMIT :limit OFFSET :offset
+    SELECT c FROM CardCollection c WHERE c.authorId = :authorId ORDER BY c.updatedAt DESC, c.id DESC LIMIT :limit OFFSET :offset
     """)
     List<CardCollection> findByAuthorId(final long authorId, final int limit, final int offset);
 
@@ -26,7 +26,7 @@ public interface CardCollectionRepository extends JpaRepository<CardCollection, 
             WHERE cc.isPublic = true
             AND cc.authorId != :userId
             AND cc1.id IS NULL
-            ORDER BY cc.createdAt ASC
+            ORDER BY cc.updatedAt DESC, cc.id DESC
             LIMIT :limit
             OFFSET :offset
             """

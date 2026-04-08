@@ -14,6 +14,7 @@ import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
+import com.github.dementev_alex_p.repeatit.utils.NumberTextConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,8 +33,7 @@ public class ViewCollectionListHandler implements CommandHandler {
             —————————————————————
             Ниже ваши коллекции c %d по %d (всего %d):
             
-            %s
-            💡 Для перехода к коллекции нажмите на ее номер:
+            %s💡 Для перехода к коллекции нажмите на ее номер:
             """;
     private static final String ZERO_COLLECTIONS_TEXT = """
             <strong>Коллекции</strong>
@@ -42,8 +42,8 @@ public class ViewCollectionListHandler implements CommandHandler {
             Вы можете создать собственную коллекцию или добавить к себе публичную коллекцию.
             """;
     private static final String VIEW_COLLECTION_TEXT = """
-            %d. %s (карточек %d)
-            ——————————
+            %s %s (карточек %d)
+            
             """;
     protected static final int COUNT_COLLECTIONS_ON_PAGE = 5;
 
@@ -61,9 +61,10 @@ public class ViewCollectionListHandler implements CommandHandler {
             return sendZeroCollectionMessage();
         } else {
             final int page = CommandParameterUtils.extractPage(context);
-            final List<CardCollection> userCollections = cardCollectionService.findByAuthorId(
-                    context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE
-            );
+            final List<CardCollection> userCollections = cardCollectionService
+                    .findByAuthorId(context.userId(), COUNT_COLLECTIONS_ON_PAGE, (page - 1) * COUNT_COLLECTIONS_ON_PAGE)
+                    .stream()
+                    .toList();
 
             final int firstNumber = (page - 1) * COUNT_COLLECTIONS_ON_PAGE + 1;
             final int lastNumber = firstNumber + userCollections.size() - 1;
@@ -122,7 +123,7 @@ public class ViewCollectionListHandler implements CommandHandler {
                 .stream()
                 .map(collection -> String.format(
                         VIEW_COLLECTION_TEXT,
-                        number.incrementAndGet(),
+                        NumberTextConverter.convert(number.incrementAndGet()),
                         collection.getName(),
                         collection.getCards().size()
                 )).collect(Collectors.joining());

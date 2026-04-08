@@ -36,17 +36,13 @@ public class CardCollectionService {
     }
 
     @Transactional
-    public void forkCardCollection(CardCollection parentCollection, long userId) {
+    public CardCollection forkCardCollection(CardCollection parentCollection, long userId) {
         final CardCollection newCardCollection = cardCollectionRepository.save(
-                new CardCollection(
-                        userId,
-                        parentCollection.getName(),
-                        parentCollection.getId(),
-                        false
-                )
+                CardCollection.forkCollection(userId, parentCollection)
         );
 
         cardService.forkCards(parentCollection.getCards(), userId, newCardCollection);
+        return newCardCollection;
     }
 
     @Transactional

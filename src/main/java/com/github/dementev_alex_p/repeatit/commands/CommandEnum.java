@@ -8,8 +8,9 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public enum CommandEnum {
     MAIN_MENU("start", "Главнове меню", 0),
-    INSTRUCTION("instruction", "🧠 Как это работает?", 0),
-    TRAINING("training", "\uD83C\uDFC6 Тренировка", 1),
+    INSTRUCTION_MENU("instruction_menu", "🧠 Как это работает?", 1),
+    INSTRUCTION("instruction", "🧠 Как это работает?", 100),
+    TRAINING("training", "\uD83C\uDFC6 Тренировка", 3),
     VIEW_CARD_MENU("view_card_menu", "📘 Карточки",  1),
     VIEW_CARD("view_card", "✍ Изменить", 4),
     SEARCH("search_card", "🔍︎ Поиск", -1),
@@ -25,7 +26,7 @@ public enum CommandEnum {
     VIEW_COLLECTION("view_collection", "Просмотр коллекции", 3),
     CREATE_COLLECTION("create_collection", "➕ Создать коллекцию", 3),
     DELETE_COLLECTION("delete_collection", "❌ Удалить", 4),
-    ADD_PUBLIC_COLLECTION("add_cards_from_collection", "📚 Коллекции", 4),
+    ADD_PUBLIC_COLLECTION("add_cards_from_collection", "📚 Коллекции", 3),
     EDIT_COLLECTION_TITLE("edit_collection_title", "✍ Изменить название", 4),
     EXCLUDE_COLLECTION_FROM_TRAINING("exclude", "⏸ Исключить из тренировок", 4),
     REMOVE_COLLECTION_EXCLUSION("remove_exclusion", "▶ Снять исключение из тренировок", 4),

@@ -3,6 +3,7 @@ package com.github.dementev_alex_p.repeatit.commands.handlers;
 import com.github.dementev_alex_p.repeatit.cards.CardService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.StartTrainingButton;
+import com.github.dementev_alex_p.repeatit.commands.handlers.instruction.InstructionEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -32,17 +33,6 @@ public class ViewMainMenuHandler implements CommandHandler {
     private static final String DAILY_CARD_COUNT = """
             Сегодня карточек к повторению: %d
             """;
-    private static final String START_TEXT = """
-            RepeatIt поможет вам запоминать информацию надолго с помощью интервальных повторений
-            📌 Вы создаёте карточки (вопрос → ответ)
-            📌 Бот сам решает, когда какую карточку вам нужно повторить
-            📌 Ваша задача — проходить ежедневные тренировки
-            
-            ✨ <strong>С чего начать?</strong>
-            Нажмите «🧠 Как это работает» в главном меню — там есть инструкция, описание алгоритма и ответы на частые вопросы.
-            
-            А когда будете готовы — сразу жмите «🏆 Тренировка» или создавайте свои первые карточки через «📘 Карточки».
-            """;
 
     @Override
     public CommandEnum getCommand() {
@@ -60,11 +50,11 @@ public class ViewMainMenuHandler implements CommandHandler {
                     new CommandLine(new StartTrainingButton()),
                     new CommandLine(CommandEnum.VIEW_CARD_MENU),
                     new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
-                    new CommandLine(CommandEnum.INSTRUCTION)
+                    new CommandLine(CommandEnum.INSTRUCTION_MENU)
             );
             return CommandResponse
                     .builder()
-                    .text(String.format(GREETING, context.userName(), START_TEXT))
+                    .text(InstructionEnum.FIRST_STEPS.getText())
                     .availableCommands(commandLines)
                     .build();
         }
@@ -73,7 +63,7 @@ public class ViewMainMenuHandler implements CommandHandler {
                 new CommandLine(new StartTrainingButton()),
                 new CommandLine(CommandEnum.VIEW_CARD_MENU),
                 new CommandLine(CommandEnum.VIEW_COLLECTION_LIST),
-                new CommandLine(CommandEnum.INSTRUCTION)
+                new CommandLine(CommandEnum.INSTRUCTION_MENU)
         );
         return CommandResponse
                 .builder()

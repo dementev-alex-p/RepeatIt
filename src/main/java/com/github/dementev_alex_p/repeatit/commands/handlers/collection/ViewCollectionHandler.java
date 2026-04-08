@@ -11,7 +11,9 @@ import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
+import com.github.dementev_alex_p.repeatit.utils.CollectionTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
+import com.github.dementev_alex_p.repeatit.utils.NumberTextConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +32,7 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String COLLECTION_VIEW_TEXT = """
             <strong>Коллекция</strong>
             —————————————————————
-            <strong>Название:</strong> %s
+            %s
             %s
             %s
             """;
@@ -39,14 +41,12 @@ public class ViewCollectionHandler implements CommandHandler {
     private static final String EXCLUSION_TEXT = "\n⚠ Коллекция исключена из тренировок. Вы можете снять исключение и тогда алгоритмы снова начнут добавлять карточки коллекции в тренировку";
     private static final String PUBLIC_COLLECTION_HINT = "💡 Вы можете добавить публичную коллекцию к себе для изучения";
     private static final int COUNT_CARDS_ON_PAGE = 5;
-    private static final String CARD_DELIMITER = "—————————————————————\n";
     private static final String ZERO_CARDS_VIEW = "В коллекции еще нет карточек";
     private static final String CARDS_VIEW = """
             Ниже карточки c %d по %d (всего %d):
-            
             %s
             """;
-    private static final String CARD_WITH_NUMBER = "%d. \n%s";
+    private static final String CARD_WITH_NUMBER = "\n%s\n%s";
 
     private final CardCollectionService cardCollectionService;
     private final CardService cardService;
@@ -75,7 +75,7 @@ public class ViewCollectionHandler implements CommandHandler {
         final int cardCount = cardService.findCardCountByCollectionId(collection.getId());
         final String collectionText = String.format(
                 COLLECTION_VIEW_TEXT,
-                collection.getName(),
+                CollectionTextConverter.convert(collection),
                 String.format(COLLECTION_CARD_COUNT_TEXT, cardCount),
                 collection.isExcludedFromTraining() ? EXCLUSION_TEXT : ""
         );
@@ -113,7 +113,7 @@ public class ViewCollectionHandler implements CommandHandler {
         );
         final String messageText = String.format(
                 COLLECTION_VIEW_TEXT,
-                collection.getName(),
+                CollectionTextConverter.convert(collection),
                 convertForView(cards, totalCardCount, page),
                 COLLECTION_CARD_HINT
         );
@@ -146,7 +146,7 @@ public class ViewCollectionHandler implements CommandHandler {
 
         final String messageText = String.format(
                 COLLECTION_VIEW_TEXT,
-                collection.getName(),
+                CollectionTextConverter.convert(collection),
                 convertForView(cards, totalCardCount, page),
                 PUBLIC_COLLECTION_HINT
         );
@@ -163,7 +163,7 @@ public class ViewCollectionHandler implements CommandHandler {
     }
 
     private Optional<CommandLine> createPaginationLine(final List<Card> cards, final int page, final int totalCardCount, final long collectionId) {
-        if (cards.size() < COUNT_CARDS_ON_PAGE) {
+        if (cards.size() < COUNT_CARDS_ON_PAGE && page == 1) {
             return Optional.empty();
         }
         final List<CommandButton> buttons = new ArrayList<>();
@@ -203,8 +203,8 @@ public class ViewCollectionHandler implements CommandHandler {
         final String cardText = cards
                 .stream()
                 .map(CardTextConverter::convertCardToShortText)
-                .map(text -> String.format(CARD_WITH_NUMBER, number.incrementAndGet(), text))
-                .collect(Collectors.joining(CARD_DELIMITER));
+                .map(text -> String.format(CARD_WITH_NUMBER, NumberTextConverter.convert(number.incrementAndGet()), text))
+                .collect(Collectors.joining());
         return String.format(CARDS_VIEW, firstNumber, lastNumber, totalCardCount, cardText);
     }
 }

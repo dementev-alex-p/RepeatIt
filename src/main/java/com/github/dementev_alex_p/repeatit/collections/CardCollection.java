@@ -25,18 +25,24 @@ public class CardCollection {
     @Column(name = "card_collection_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    @ToString.Exclude
+    @ToString.Include
     private long id;
 
     @Column(name = "name")
     @Size(min = 1, max = 100)
     @NotBlank
+    @ToString.Include
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "is_public")
+    @ToString.Include
     private boolean isPublic;
 
     @Column(name = "author_id")
+    @ToString.Include
     private long authorId;
 
     @OneToMany(mappedBy = "cardCollection")
@@ -58,13 +64,20 @@ public class CardCollection {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public CardCollection(final long userId, final String name, final long parentCollectionId, final boolean isPublic) {
-        this.authorId = userId;
-        this.name = name;
-        this.parentCollectionId = parentCollectionId;
-        this.isPublic = isPublic;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+    public static CardCollection forkCollection(final long userId, final CardCollection collection) {
+        return new CardCollection(
+                0,
+                collection.name,
+                collection.description,
+                false,
+                userId,
+                List.of(),
+                collection.id,
+                false,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                null
+        );
     }
 
     public CardCollection(final long userId, final String name) {

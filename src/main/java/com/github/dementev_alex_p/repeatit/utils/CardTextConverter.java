@@ -76,6 +76,9 @@ public class CardTextConverter {
     }
 
     public static String escapeForHtml(String text) {
+        if (text.trim().startsWith("<a href")) {
+            return text;
+        }
         return text
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
