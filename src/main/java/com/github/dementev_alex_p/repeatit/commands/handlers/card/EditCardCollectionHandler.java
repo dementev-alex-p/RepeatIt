@@ -19,7 +19,6 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,10 +31,10 @@ public class EditCardCollectionHandler implements CommandHandler {
             <strong>Редактирование коллекции карточки</strong>
             —————————————————————
             %s
+            У вас коллекций :%d
             %s
             """;
     private static final String HINT = """
-            💡 У вас коллекций :%d
             • Для добавление карточки в коллекцию нажмите "🔍︎ Поиск" и найдите коллекцию по названию
             • Если не нашли подходящую, то вы можете ее создать, а затем вернуться сюда
             • Если хотите оставить карточку без коллекции, то нажмите "Без коллекции"
@@ -61,7 +60,10 @@ public class EditCardCollectionHandler implements CommandHandler {
             return updateCardCollection(chosenCollectionId.get(), context);
         }
         final Card card = cardService.findCardById(CommandParameterUtils.extractCardId(context));
-        if (isUserCollectionsEmpty(context.userId())) {
+
+        final int collectionCount = cardCollectionService.findCountByAuthorId(context.userId());
+
+        if (collectionCount == 0) {
             return viewEmptyCollectionText(card);
         }
         if (isSkipCollectionAction(context)) {
@@ -73,25 +75,27 @@ public class EditCardCollectionHandler implements CommandHandler {
                 new CommandLine(new SkipCollectionButton(card.getId())),
                 new CommandLine(new BackButton())
         );
+        final String text = String.format(
+                TITLE_TEXT,
+                CardTextConverter.convertCardToTextForView(card),
+                collectionCount,
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : "");
+
         return CommandResponse
                 .builder()
-                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card), HINT))
-                .availableCommands(commandLines)
+                .text(text)
+                .availableCommands(addHintButtonIfRequired(context, commandLines))
                 .build();
     }
 
     private CommandResponse viewEmptyCollectionText(final Card card) {
         return CommandResponse
                 .builder()
-                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card), EMPTY_COLLECTION_HINT))
+                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card), 0, EMPTY_COLLECTION_HINT))
                 .availableCommands(List.of(
                         new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                         new CommandLine(new BackButton())
                 )).build();
-    }
-
-    private boolean isUserCollectionsEmpty(final long userId) {
-        return cardCollectionService.findCountByAuthorId(userId) == 0;
     }
 
     private CommandResponse skipCollection(final MessageContext context) {
