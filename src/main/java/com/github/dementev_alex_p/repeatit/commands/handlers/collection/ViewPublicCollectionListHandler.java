@@ -4,6 +4,7 @@ import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
 import com.github.dementev_alex_p.repeatit.commands.buttons.*;
+import com.github.dementev_alex_p.repeatit.commands.handlers.instruction.InstructionEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -60,6 +61,7 @@ public class ViewPublicCollectionListHandler extends ViewCollectionListHandler {
         final int lastNumber = firstNumber + publicCollections.size() - 1;
 
         final List<CommandLine> commandLines = Arrays.asList(
+                new CommandLine(new InstructionButton(InstructionEnum.PUBLIC_COLLECTION)),
                 createNumberButtons(publicCollections, publicCollectionsCount, page),
                 new CommandLine(new BackButton())
         );

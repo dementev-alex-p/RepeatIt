@@ -3,13 +3,9 @@ package com.github.dementev_alex_p.repeatit.commands.handlers.collection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollection;
 import com.github.dementev_alex_p.repeatit.collections.CardCollectionService;
 import com.github.dementev_alex_p.repeatit.commands.CommandEnum;
-import com.github.dementev_alex_p.repeatit.commands.buttons.BackButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CollectionNumberButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.CommandButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.NextCollectionsButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.PreviousCollectionsButton;
-import com.github.dementev_alex_p.repeatit.commands.buttons.PublicCollectionsButton;
+import com.github.dementev_alex_p.repeatit.commands.buttons.*;
 import com.github.dementev_alex_p.repeatit.commands.handlers.CommandHandler;
+import com.github.dementev_alex_p.repeatit.commands.handlers.instruction.InstructionEnum;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandLine;
 import com.github.dementev_alex_p.repeatit.commands.result.CommandResponse;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
@@ -73,6 +69,7 @@ public class ViewCollectionListHandler implements CommandHandler {
                     createNumberButtons(userCollections, userCollectionsCount, page),
                     new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                     new CommandLine(new PublicCollectionsButton()),
+                    new CommandLine(new InstructionButton(InstructionEnum.COLLECTION)),
                     new CommandLine(new BackButton())
             );
 
