@@ -31,17 +31,22 @@ public class CreatCardHandler implements CommandHandler {
             Карточка:
             %s
             %s
+            %s
             """;
     private static final String FINISH_CREATION_TEXT = """
             ✅ Карточка успешно создана!
             """;
     private static final String WRITE_FRONT_SIDE = """
             ✍ <i>Введите <strong>обложку</strong>...</i>
-            
-            <code>💡 Для быстрого создания карточки из любого пункта меню, просто введите и отправьте мне ее обложку </code>
             """;
     private static final String WRITE_BACK_SIDE = "✅ Обложка сохранена!\n\n✍ <i>Введите <strong>содержание</strong>...</i>";
-
+    private static final String HINT = """
+        💡 Для быстрого создания карточки из любого пункта меню, просто введите и отправьте мне ее обложку
+        Например:
+        • Узнали информацию, которую хотите запомнить -> Переходите бота и просто присылайте ее. Бот увидит от вас сообщение и запустит режим создания карточки!
+        • Во время тренировки вам пришла идея для карточки -> Опишите идею и присылайте. А после создания карточки вы сможете вернуться к тренировке!
+        """;
+    private static final String START_ACTION = "start";
     private final CardService cardService;
     private final TgMessageService tgMessageService;
     private final ViewCardHandler viewCardHandler;
@@ -96,7 +101,8 @@ public class CreatCardHandler implements CommandHandler {
                 collection.isEmpty()
                         ? CardTextConverter.convertForCreatingCard(frontSideText)
                         : CardTextConverter.convertForCreatingCardWithCollection(frontSideText, collection.get()),
-                WRITE_BACK_SIDE
+                WRITE_BACK_SIDE,
+                ""
         );
         final List<CommandLine> commandLines = List.of(
                 new CommandLine(new SkipBackSideButton(card.getId()))
@@ -115,39 +121,41 @@ public class CreatCardHandler implements CommandHandler {
     private CommandResponse startCreationCard(final MessageContext context) {
         final Optional<Long> chosenCollectionId = CommandParameterUtils.extractNullableCollectionId(context);
         if (chosenCollectionId.isPresent()) {
-            return showCreationMessageWithCollection(chosenCollectionId.get());
+            return showCreationMessageWithCollection(context, chosenCollectionId.get());
         }
         final String startCreationText = String.format(
                 TITLE_TEXT,
                 CardTextConverter.convertForCreatingCard(null),
-                WRITE_FRONT_SIDE
+                WRITE_FRONT_SIDE,
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : ""
         );
         return CommandResponse
                 .builder()
                 .text(startCreationText)
-                .availableCommands(List.of(new CommandLine(new BackButton())))
+                .availableCommands(addHintButtonIfRequired(context, List.of(new CommandLine(new BackButton()))))
                 .isAnswerExcepted(true)
                 .build();
     }
 
-    private CommandResponse showCreationMessageWithCollection(final long chosenCollectionId) {
+    private CommandResponse showCreationMessageWithCollection(final MessageContext context, final long chosenCollectionId) {
         final CardCollection collection = cardCollectionService.findById(chosenCollectionId);
         final String startCreationText = String.format(
                 TITLE_TEXT,
                 CardTextConverter.convertForCreatingCardWithCollection(null, collection),
-                WRITE_FRONT_SIDE
+                WRITE_FRONT_SIDE,
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : ""
         );
         return CommandResponse
                 .builder()
                 .text(startCreationText)
-                .availableCommands(List.of(new CommandLine(new BackButton())))
+                .availableCommands(addHintButtonIfRequired(context, List.of(new CommandLine(new BackButton()))))
                 .isAnswerExcepted(true)
                 .build();
     }
 
     private boolean isStartCreationCard(final MessageContext context) {
         return context.message().isEmpty() &&
-                CommandParameterUtils.extractNullableAction(context).filter("start"::equals).isPresent();
+                CommandParameterUtils.extractNullableAction(context).filter(START_ACTION::equals).isPresent();
     }
 
     private CommandResponse saveCardBackSide(final MessageContext context, final long cardId, final String backSide) {

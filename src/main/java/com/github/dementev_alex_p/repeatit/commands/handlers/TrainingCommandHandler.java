@@ -22,7 +22,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,23 +36,29 @@ public class TrainingCommandHandler implements CommandHandler {
     private static final String START_TRAINING = """
             <strong>Тренировка</strong>
             —————————————————————
-            %s
-            Постарайтесь вспомнить карточку и оцените результат:
-            🚀 - Сразу вспомнилось
-            ⏳ - Вспомнилось с трудом
-            ❓ - Не удалось вспомнить
-            
+            %s%s
             Прогресс: %d/%d (%d%%)
             %s
             """;
     private static final String PROGRESS_ITEM_FILLED = "✅ ";
     private static final String PROGRESS_ITEM = "◻️";
     private static final String NOT_FOUND_CARDS_FOR_TRAINING = "Для начала тренировки необходимо добавить карточки";
+    private static final String HINT = """
+            
+            1️⃣ Посмотрите на обложку 📘 или на картинку
+            2️⃣ Постарайтесь вспомнить содержание карточки
+            3️⃣ Нажмите на "📖 Показать содержание", что бы проверить себя
+            4️⃣ Оцените результат:
+                🚀 - Сразу вспомнилось
+                ⏳ - Вспомнилось с трудом
+                ❓ - Не удалось вспомнить
+            
+            Если во время тренировки вы захотите изменить карточку или удалить ее, то смело нажимайте "✍ Изменить", после редактирования тренировка продолжится с того же места 
+            """;
     private static final String NEXT_CARD_TEXT = """
             Карточка %d
             ————————————————
-            %s
-            """;
+            %s""";
     private static final String END_TRAINING = """
             <strong>Тренировка завершена!</strong>
             —————————————————————
@@ -67,6 +72,7 @@ public class TrainingCommandHandler implements CommandHandler {
     private static final String COLLECTION_NAME = "<strong>Коллекция</strong>: %s\n";
     public static final String START_ACTION_CODE = "start";
     public static final String SHOW_BACK_SIDE = "show_back_side";
+    private static final String DALY_TRAINING_TEXT = "Ежедневная тренировка";
 
     public final TrainingService trainingService;
     public final TrainingCardService trainingCardService;
@@ -105,8 +111,20 @@ public class TrainingCommandHandler implements CommandHandler {
             return finishTraining(training);
         }
 
-        return continueTraining(training, nextCard.get());
+        return continueTraining(training, nextCard.get(), context);
     }
+
+//    private CommandResponse showHint(final MessageContext context, final Training training) {
+//        final TrainingCard currentCard = training.getTrainingCards()
+//                .stream()
+//                .sorted(Comparator.comparing(TrainingCard::getOrderIndex))
+//                .filter(c -> c.getRecallScore() == null)
+//                .findFirst()
+//                .orElseThrow();
+//        return continueTraining(training, currentCard, context);
+//    }
+
+
 
     private CommandResponse showBackSide(final MessageContext context, final Training training) {
         final long cardId = Long.parseLong(context.commandParameters().get(CommandParameterUtils.CARD_PARAMETER_CODE));
@@ -172,7 +190,7 @@ public class TrainingCommandHandler implements CommandHandler {
                 .findFirst();
     }
 
-    private CommandResponse continueTraining(final Training training, final TrainingCard trainingCard) {
+    private CommandResponse continueTraining(final Training training, final TrainingCard trainingCard, final MessageContext context) {
         final Card card = cardService.findCardById(trainingCard.getCardId());
 
         final int currentOrderIndex = trainingCard.getOrderIndex() - 1;
@@ -182,13 +200,14 @@ public class TrainingCommandHandler implements CommandHandler {
         final String statisticText = String.format(
                 START_TRAINING,
                 getCollectionName(training),
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : "",
                 currentOrderIndex, totalCardsCount, percentage,
                 createProgressBar(percentage)
         );
         final CommandResponse statisticMessage = CommandResponse
                 .builder()
                 .text(statisticText)
-                .availableCommands(Collections.singletonList(new CommandLine(new FinishTrainingButton())))
+                .availableCommands(addHintButtonIfRequired(context, List.of(new CommandLine(new FinishTrainingButton()))))
                 .build();
 
         return CommandResponse
@@ -269,13 +288,14 @@ public class TrainingCommandHandler implements CommandHandler {
         final String statisticText = String.format(
                 START_TRAINING,
                 getCollectionName(training),
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : "",
                 0, totalCardCount, 0,
                 createProgressBar(0)
         );
         final CommandResponse statisticMessage = CommandResponse
                 .builder()
                 .text(statisticText)
-                .availableCommands(List.of(new CommandLine(new FinishTrainingButton())))
+                .availableCommands(addHintButtonIfRequired(context, List.of(new CommandLine(new FinishTrainingButton()))))
                 .build();
 
         return CommandResponse
@@ -366,7 +386,7 @@ public class TrainingCommandHandler implements CommandHandler {
         return Optional
                 .ofNullable(training.getStudiedCollection())
                 .map(c -> String.format(COLLECTION_NAME, c.getName()))
-                .orElse("");
+                .orElse(DALY_TRAINING_TEXT);
     }
 
     private record TrainingStarterPack(Training training, Card firstCard) {

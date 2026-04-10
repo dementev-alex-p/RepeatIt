@@ -108,7 +108,7 @@ public class MessageContextService {
     }
 
     private Command determinateCommandFromLastMessage(final long userId) {
-        final List<TgMessage> lastedOrderedMessages = tgMessageService.findLastedCardsByUserIdOrderedByCreatedAtDesc(userId, 20);
+        final List<TgMessage> lastedOrderedMessages = tgMessageService.findLastedMessagesByUserIdOrderedByCreatedAtDesc(userId, 20);
         if (lastedOrderedMessages.isEmpty()) {
             return new Command(CommandEnum.MAIN_MENU, new HashMap<>());
         }

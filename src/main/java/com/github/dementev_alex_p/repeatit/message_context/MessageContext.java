@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public record MessageContext(
-        long userId, String userName, long chatId, Optional<Integer> tgMessageId, Optional<String> data, Optional<String> message,
-        @With CommandEnum command, @NotNull Map<String, String> commandParameters, String callBackId
+        long userId, String userName, long chatId, Optional<Integer> tgMessageId, Optional<String> data, @With Optional<String> message,
+        @With CommandEnum command, @With @NotNull Map<String, String> commandParameters, String callBackId
 ) {
 }

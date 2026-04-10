@@ -21,8 +21,8 @@ public class TgMessageService {
         return tgMessageRepository.findLastAndNotDeletedByUserId(userId);
     }
 
-    public List<TgMessage> findLastedCardsByUserIdOrderedByCreatedAtDesc(final long userId, final int limit) {
-        return tgMessageRepository.findLastedCardsByUserId(userId, limit);
+    public List<TgMessage> findLastedMessagesByUserIdOrderedByCreatedAtDesc(final long userId, final int limit) {
+        return tgMessageRepository.findLastedMessagesByUserId(userId, limit);
     }
 
     public List<TgMessage> findNotDeletedMessagesByUserId(final long userId) {

@@ -113,7 +113,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         execute(new DeleteMessage(String.valueOf(chatId), messageId));
     }
 
-    private void answerToCallback(final String callbackId, @Nullable final String alert)  {
+    private void answerToCallback(final String callbackId, @Nullable final String alert) {
         try {
             execute(AnswerCallbackQuery
                     .builder()
@@ -166,7 +166,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (previousMessages.isEmpty()) {
             sendNewMessage(context, response);
         } else {
-            editMessage(context,response, previousMessages);
+            editMessage(context, response, previousMessages);
         }
 
     }
@@ -206,19 +206,18 @@ public class TelegramBot extends TelegramLongPollingBot {
             editMessage(context, response.getTrainingStatisticMessage(), messagesWithoutLast);
         }
 
-        if (response.getText().equals(lastMessages.getMessageText())) {
-            log.info(
-                    "Новое сообщение идентично предыдущему. message = \n{}\n context = \n{}",
-                    response, context
-            );
-        }
+        //Добавляем пустой символ к тексту, что бы избежать ошибок в телеграм
+        final String text = response.getText().equals(lastMessages.getMessageText()) ?
+                response.getText() + "ㅤ"
+                : response.getText();
+
         final int tgMessageId = lastMessages.getTgMessageId();
         final InlineKeyboardMarkup inlineKeyboard = createInlineKeyboard(response.getAvailableCommands());
 
         final EditMessageText editMessage = EditMessageText.builder()
                 .chatId(context.chatId())
                 .messageId(tgMessageId)
-                .text(response.getText())
+                .text(text)
                 .parseMode("HTML")
                 .replyMarkup(inlineKeyboard)
                 .build();

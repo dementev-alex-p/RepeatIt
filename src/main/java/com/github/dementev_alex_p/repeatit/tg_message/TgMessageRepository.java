@@ -19,5 +19,5 @@ interface TgMessageRepository extends JpaRepository<TgMessage, Long> {
     List<TgMessage> findByTgMessageIdInAndDeletedAtIsNull(final List<Integer> messageIds);
 
     @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId ORDER BY m.createdAt DESC LIMIT :limit")
-    List<TgMessage> findLastedCardsByUserId(final long userId, final int limit);
+    List<TgMessage> findLastedMessagesByUserId(final long userId, final int limit);
 }

@@ -19,6 +19,7 @@ import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,11 +29,19 @@ public class EditCardCollectionHandler implements CommandHandler {
 
 
     private static final String TITLE_TEXT = """
-            <strong>Редактирование карточки</strong>
+            <strong>Редактирование коллекции карточки</strong>
             —————————————————————
             %s
-            
-            💡 Нажмите на поиск и выберите коллекцию для карточки
+            %s
+            """;
+    private static final String HINT = """
+            💡 У вас коллекций :%d
+            • Для добавление карточки в коллекцию нажмите "🔍︎ Поиск" и найдите коллекцию по названию
+            • Если не нашли подходящую, то вы можете ее создать, а затем вернуться сюда
+            • Если хотите оставить карточку без коллекции, то нажмите "Без коллекции"
+            """;
+    private static final String EMPTY_COLLECTION_HINT = """
+            💡 У вас пока что нет коллекций, нажмите "➕ Создать коллекцию", а затем возвращайтесь сюда
             """;
     private final CardService cardService;
     private final CardCollectionService cardCollectionService;
@@ -52,19 +61,37 @@ public class EditCardCollectionHandler implements CommandHandler {
             return updateCardCollection(chosenCollectionId.get(), context);
         }
         final Card card = cardService.findCardById(CommandParameterUtils.extractCardId(context));
+        if (isUserCollectionsEmpty(context.userId())) {
+            return viewEmptyCollectionText(card);
+        }
         if (isSkipCollectionAction(context)) {
             return skipCollection(context);
         }
         final List<CommandLine> commandLines = List.of(
                 new CommandLine(new CommandButton(CommandEnum.SEARCH)),
+                new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
                 new CommandLine(new SkipCollectionButton(card.getId())),
                 new CommandLine(new BackButton())
         );
         return CommandResponse
                 .builder()
-                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
+                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card), HINT))
                 .availableCommands(commandLines)
                 .build();
+    }
+
+    private CommandResponse viewEmptyCollectionText(final Card card) {
+        return CommandResponse
+                .builder()
+                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card), EMPTY_COLLECTION_HINT))
+                .availableCommands(List.of(
+                        new CommandLine(new CommandButton(CommandEnum.CREATE_COLLECTION)),
+                        new CommandLine(new BackButton())
+                )).build();
+    }
+
+    private boolean isUserCollectionsEmpty(final long userId) {
+        return cardCollectionService.findCountByAuthorId(userId) == 0;
     }
 
     private CommandResponse skipCollection(final MessageContext context) {
@@ -80,12 +107,7 @@ public class EditCardCollectionHandler implements CommandHandler {
     }
 
     private CommandResponse updateCardCollection(final long collectionId, final MessageContext context) {
-        final Long cardId = tgMessageService
-                .findLastEditableByUserId(context.userId())
-                .filter(message -> CommandEnum.EDIT_CARD_COLLECTION == message.getCommand())
-                .map(TgMessage::getCommandParameters)
-                .flatMap(CommandParameterUtils::extractCardId)
-                .orElseThrow();
+        final Long cardId = extractCardId(context);
 
         final CardCollection collection = cardCollectionService.findById(collectionId);
         cardService.updateCardCollection(cardId, collection);
@@ -95,11 +117,24 @@ public class EditCardCollectionHandler implements CommandHandler {
                 .withCommand(CommandEnum.VIEW_CARD);
     }
 
-    private Optional<Long> extractCollectionIdFromMessage(final MessageContext messageContext) {
-        return messageContext
+    private Long extractCardId(final MessageContext context) {
+        return CommandParameterUtils
+                .extractNullableCardId(context)
+                .orElseGet(() -> tgMessageService
+                        .findLastEditableByUserId(context.userId())
+                        .filter(message -> CommandEnum.EDIT_CARD_COLLECTION == message.getCommand())
+                        .map(TgMessage::getCommandParameters)
+                        .flatMap(CommandParameterUtils::extractCardId)
+                        .orElseThrow()
+                );
+    }
+
+    private Optional<Long> extractCollectionIdFromMessage(final MessageContext context) {
+        return context
                 .message()
                 .map(message -> message.substring(CommandEnum.EDIT_CARD_COLLECTION.getCode().length() + 1).trim())
-                .map(Long::parseLong);
+                .map(Long::parseLong)
+                .or(() -> CommandParameterUtils.extractNullableCollectionId(context));
     }
 
 

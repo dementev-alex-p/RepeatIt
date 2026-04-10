@@ -24,7 +24,7 @@ public enum CommandEnum {
     VIEW_COLLECTION_LIST("view_collection_list", "📚 Коллекции", 1),
     VIEW_PUBLIC_COLLECTION_LIST("view_public_collection_list", "📢 Публичные коллекции", 2),
     VIEW_COLLECTION("view_collection", "Просмотр коллекции", 3),
-    CREATE_COLLECTION("create_collection", "➕ Создать коллекцию", 3),
+    CREATE_COLLECTION("create_collection", "➕ Создать коллекцию", 6),
     DELETE_COLLECTION("delete_collection", "❌ Удалить", 4),
     ADD_PUBLIC_COLLECTION("add_cards_from_collection", "📚 Коллекции", 3),
     EDIT_COLLECTION_TITLE("edit_collection_title", "✍ Изменить название", 4),
