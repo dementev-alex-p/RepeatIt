@@ -27,10 +27,15 @@ public class ViewCardHandler implements CommandHandler {
             <strong>Карточка</strong>
             —————————————————————
             %s
+            %s
+            """;
+    private static final String HINT = """
             Для редактирования нажмите
             📘 - изменить обложку
             📖 - изменить содержание
             📚 - изменить коллекцию
+            
+            Если эту карточку вы добавили из публичной коллекции, то не бойтесь ее редактировать. Ваши действия распространяются только на вашу карточку, публичная карточка останется без изменений.
             """;
 
 
@@ -52,12 +57,15 @@ public class ViewCardHandler implements CommandHandler {
                 new CommandLine(new DeleteCardButton(card.getId())),
                 new CommandLine(new BackButton())
         );
-
+        final String text = String.format(
+                TITLE_TEXT,
+                CardTextConverter.convertCardToTextForView(card),
+                CommandParameterUtils.isViewHintRequired(context) ? HINT : ""
+        );
         return CommandResponse
                 .builder()
-                .text(String.format(TITLE_TEXT, CardTextConverter.convertCardToTextForView(card)))
-                .availableCommands(commandLines)
-                .parameters(List.of(CommandParameterUtils.createCardIdParameter(cardId)))
+                .text(text)
+                .availableCommands(addHintButtonIfRequired(context, commandLines))
                 .build();
     }
 
@@ -67,7 +75,9 @@ public class ViewCardHandler implements CommandHandler {
                 .filter(m -> m.startsWith("/" + CommandEnum.VIEW_CARD.getCode()))
                 .isPresent();
         if (isViewAfterSearch) {
-            return Long.parseLong(context.message().get().substring(CommandEnum.VIEW_CARD.getCode().length() + 1).trim());
+            long cardId = Long.parseLong(context.message().get().substring(CommandEnum.VIEW_CARD.getCode().length() + 1).trim());
+            context.commandParameters().put(CommandParameterUtils.CARD_PARAMETER_CODE, String.valueOf(cardId));
+            return cardId;
         }
         return CommandParameterUtils.extractCardId(context);
     }
