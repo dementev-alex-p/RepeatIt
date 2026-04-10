@@ -2,7 +2,8 @@ telegram:
   bot:
     name : RepeatIt_tgbot
     token: ${TG_BOT_TOKEN}
-
+gigachat:
+    auth-key: ${GIGACHAT_AUTH_KEY}
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/repeat_it_db

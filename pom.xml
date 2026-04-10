@@ -73,6 +73,12 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>chat.giga</groupId>
+			<artifactId>gigachat-java</artifactId>
+			<version>0.1.15</version>
+		</dependency>
 	</dependencies>
 
 	<build>
