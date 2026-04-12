@@ -15,8 +15,11 @@ import com.github.dementev_alex_p.repeatit.gigachat.GigaChatService;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -102,18 +105,18 @@ public class GenerateCardsHandler implements CommandHandler {
 
     private static final String VIEW_PROMPT_TEXT =
             """
-            <strong>Генерация карточек</strong>
-            —————————————————————
-            Этап 3. Ручная генерация
-            
-            Для этого нам понадобится любой ИИ-агент (ChatGPT, DeepSeek, GigaChat, Алиса AI и другие)
-            Перейдите в ИИ-агента и вставьте следующий запрос
-            <code>%s Разбей ответ на несколько JSON, длина каждого не должна превышать 4096 символов.
-            </code>
-            После того, как ИИ агент сгенерирует ответ, проверьте результат и при необходимости попросите агента внести корректировки
-            Когда ответ будет готов, вам нужно будет прислать его мне
-            Важно, что бы он был в формате JSON (начинался с [{ и заканчивался }], без лишних слов)
-            """;
+                    <strong>Генерация карточек</strong>
+                    —————————————————————
+                    Этап 3. Ручная генерация
+                    
+                    Для этого нам понадобится любой ИИ-агент (ChatGPT, DeepSeek, GigaChat, Алиса AI и другие)
+                    Перейдите в ИИ-агента и вставьте следующий запрос
+                    <code>%s Разбей ответ на несколько JSON, длина каждого не должна превышать 4096 символов.
+                    </code>
+                    После того, как ИИ агент сгенерирует ответ, проверьте результат и при необходимости попросите агента внести корректировки
+                    Когда ответ будет готов, вам нужно будет прислать его мне
+                    Важно, что бы он был в формате JSON (начинался с [{ и заканчивался }], без лишних слов)
+                    """;
 
     private static final String SUCCESS_CREATION_TEXT = """
             <strong>Генерация карточек</strong>
@@ -143,7 +146,9 @@ public class GenerateCardsHandler implements CommandHandler {
             """;
 
     private static final String PROMPT = """
-            Ты — ассистент для генерации учебных карточек для интервального повторения (алгоритм SM-2). Твоя задача — создать 20-50 карточек на русском языке на тему {%s}. Лицевая сторона карточки - это термин или вопрос. Обратная сторона - это определение или ответ. Размер до 500 символов. Формат ответа - простой текст (без оформления) в JSON формате [{"front":"вопрос", "back":"ответ"}] без лишних комментариев и уточнений - только JSON в формате простого текста. JSON должен быть валидный, в вопросах и ответах избегай двойных кавычек.
+            Ты — ассистент для генерации учебных карточек для интервального повторения (алгоритм SM-2).
+            Твоя задача — создать 20-50 карточек на русском языке на тему {%s}. Лицевая сторона карточки - это термин или вопрос. Обратная сторона - это определение или ответ размером до 500 символов. Формат ответа - простой текст (без оформления) в JSON формате [{"front":"вопрос", "back":"ответ"}].
+            Выводи ТОЛЬКО JSON-массив, без каких-либо комментариев, без markdown, без точек с запятыми после элементов. JSON будет использоваться для парсинга, поэтому он должен быть валидный, в вопросах и ответах избегай двойных кавычек.
             """;
 
     public static final String START_ACTION = "start";
@@ -315,9 +320,7 @@ public class GenerateCardsHandler implements CommandHandler {
 
     private CommandResponse generateCards(final MessageContext context) {
         final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context));
-        final String prompt = String.format(PROMPT, collection.getName());
-        final String json = gigaChatService.send(prompt);
-        final List<GeneratedCard> generatedCards = extractCardsFromJson(json);
+        final List<GeneratedCard> generatedCards = generateCardsOnTopic(collection.getName());
         if (generatedCards.isEmpty()) {
             final List<CommandLine> commands = Stream.of(
                     new CommandButton(getCommand(), "↩ Вернуться назад", CommandParameterUtils.createAction(SELECT_TOPIC))
@@ -332,6 +335,26 @@ public class GenerateCardsHandler implements CommandHandler {
 
         cardService.createCards(context.userId(), collection, generatedCards);
         return finishGeneration(collection, generatedCards.size());
+    }
+
+    private List<GeneratedCard> generateCardsOnTopic(final String name) {
+        final String json = gigaChatService.send(name, null, null);
+        try {
+            return extractCardsFromJson(json);
+        } catch (final Exception e) {
+            log.info("Не удалось распарсить ответ от гигчата. Проблема {}. \n Ответ {}", e.getMessage(), json);
+            return generateCardsOnTopicAfterError(name, e.getMessage(), json);
+        }
+    }
+
+    private List<GeneratedCard> generateCardsOnTopicAfterError(final String name, final String errorMessage, final String previousMessage) {
+        final String json = gigaChatService.send(name, previousMessage, errorMessage);
+        try {
+            return extractCardsFromJson(json);
+        } catch (final Exception e) {
+            log.error("ПОВТОРНАЯ ГЕНЕРАЦИЯ. Не удалось распарсить ответ от гигчата. Проблема {}. \n Ответ {}", e.getMessage(), json);
+            return List.of();
+        }
     }
 
     private List<GeneratedCard> extractCardsFromJson(final String message) {

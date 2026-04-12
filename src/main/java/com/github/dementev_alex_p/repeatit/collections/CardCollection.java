@@ -29,7 +29,7 @@ public class CardCollection {
     private long id;
 
     @Column(name = "name")
-    @Size(min = 1, max = 100)
+    @Size(min = 1, max = 500)
     @NotBlank
     @ToString.Include
     private String name;
