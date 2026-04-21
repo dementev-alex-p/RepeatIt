@@ -15,11 +15,8 @@ import com.github.dementev_alex_p.repeatit.gigachat.GigaChatService;
 import com.github.dementev_alex_p.repeatit.message_context.MessageContext;
 import com.github.dementev_alex_p.repeatit.utils.CardTextConverter;
 import com.github.dementev_alex_p.repeatit.utils.CommandParameterUtils;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -204,7 +201,7 @@ public class GenerateCardsHandler implements CommandHandler {
 
         return CommandResponse
                 .builder()
-                .text(String.format(SUCCESS_JSON_PARSE_TEXT, CardTextConverter.escapeForHtml(collection.getName()), totalCardCount))
+                .text(String.format(SUCCESS_JSON_PARSE_TEXT, CardTextConverter.prepareToView(collection.getName()), totalCardCount))
                 .availableCommands(commandLines)
                 .isAnswerExcepted(true)
                 .build();
@@ -214,7 +211,7 @@ public class GenerateCardsHandler implements CommandHandler {
         final CardCollection collection = cardCollectionService.findById(CommandParameterUtils.extractCollectionId(context));
         final String text = String.format(
                 VIEW_PROMPT_TEXT,
-                String.format(PROMPT, CardTextConverter.escapeForHtml(collection.getName()))
+                String.format(PROMPT, CardTextConverter.prepareToView(collection.getName()))
         );
         final List<CommandLine> commandLines = List.of(new CommandLine(
                 new CommandButton(getCommand(), "↩ Вернуться назад", CommandParameterUtils.createAction(SELECT_TOPIC))
@@ -291,7 +288,7 @@ public class GenerateCardsHandler implements CommandHandler {
 
         return CommandResponse
                 .builder()
-                .text(String.format(CREATE_COLLECTION_TEXT, CardTextConverter.escapeForHtml(collectionName)))
+                .text(String.format(CREATE_COLLECTION_TEXT, CardTextConverter.prepareToView(collectionName)))
                 .isAnswerExcepted(true)
                 .availableCommands(commands)
                 .build();
@@ -313,7 +310,7 @@ public class GenerateCardsHandler implements CommandHandler {
 
         return CommandResponse
                 .builder()
-                .text(String.format(SUCCESS_CREATION_TEXT, CardTextConverter.escapeForHtml(collection.getName()), totalCardCount))
+                .text(String.format(SUCCESS_CREATION_TEXT, CardTextConverter.prepareToView(collection.getName()), totalCardCount))
                 .availableCommands(commandLines)
                 .build();
     }

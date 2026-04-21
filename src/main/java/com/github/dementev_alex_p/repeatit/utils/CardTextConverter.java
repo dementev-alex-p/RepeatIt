@@ -35,53 +35,64 @@ public class CardTextConverter {
     public static String convertForCreatingCard(final String frontSide) {
         return frontSide == null
                 ? String.format(CARD_VIEW_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS)
-                : String.format(CARD_VIEW_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS);
+                : String.format(CARD_VIEW_TEXT, prepareToView(frontSide), SUSPENSION_POINTS);
     }
 
     public static String convertForCreatingCardWithCollection(final String frontSide, final CardCollection collection) {
         return frontSide == null
-                ? String.format(CARD_VIEW_FULL_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS, escapeForHtml(collection.getName()))
-                : String.format(CARD_VIEW_FULL_TEXT, escapeForHtml(frontSide), SUSPENSION_POINTS, escapeForHtml(collection.getName()));
+                ? String.format(CARD_VIEW_FULL_TEXT, SUSPENSION_POINTS, SUSPENSION_POINTS, prepareToView(collection.getName()))
+                : String.format(CARD_VIEW_FULL_TEXT, prepareToView(frontSide), SUSPENSION_POINTS, prepareToView(collection.getName()));
     }
 
     public static String convertCardToTextForView(final Card card) {
         return String.format(
                 CARD_VIEW_FULL_TEXT,
-                escapeForHtml(card.getFrontSide()),
-                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::escapeForHtml).orElse(DASH_BACK_SIDE),
-                Optional.ofNullable(card.getCardCollection()).map(c -> escapeForHtml(c.getName())).orElse(DASH_BACK_SIDE)
+                prepareToView(card.getFrontSide()),
+                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::prepareToView).orElse(DASH_BACK_SIDE),
+                Optional.ofNullable(card.getCardCollection()).map(c -> prepareToView(c.getName())).orElse(DASH_BACK_SIDE)
         );
     }
 
     public static String convertCardToTextForEdition(final Card card) {
         return String.format(
                 CARD_VIEW_FOR_EDITION_TEXT,
-                escapeForHtml(card.getFrontSide()),
-                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::escapeForHtml).orElse(DASH_BACK_SIDE),
-                Optional.ofNullable(card.getCardCollection()).map(c -> escapeForHtml(c.getName())).orElse(DASH_BACK_SIDE)
+                prepareToView(card.getFrontSide()),
+                Optional.ofNullable(card.getBackSide()).map(CardTextConverter::prepareToView).orElse(DASH_BACK_SIDE),
+                Optional.ofNullable(card.getCardCollection()).map(c -> prepareToView(c.getName())).orElse(DASH_BACK_SIDE)
         );
     }
 
 
     public static String forTraining(final Card card, final boolean isShowBackSide) {
         return card.getBackSide() == null
-                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, escapeForHtml(card.getFrontSide()))
-                : String.format(CARD_VIEW_TEXT, escapeForHtml(card.getFrontSide()), isShowBackSide ? escapeForHtml(card.getBackSide()) : HIDE_BACK_SIDE);
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, prepareToView(card.getFrontSide()))
+                : String.format(CARD_VIEW_TEXT, prepareToView(card.getFrontSide()), isShowBackSide ? prepareToView(card.getBackSide()) : HIDE_BACK_SIDE);
     }
 
     public static String convertCardToShortText(final Card card) {
         return card.getBackSide() == null
-                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, escapeForHtml(card.getFrontSide()))
-                : String.format(CARD_VIEW_TEXT, escapeForHtml(card.getFrontSide()), escapeForHtml(card.getBackSide()));
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, truncateToShort(prepareToView(card.getFrontSide())))
+                : String.format(CARD_VIEW_TEXT, prepareToView(card.getFrontSide()), prepareToView(card.getBackSide()));
     }
 
-    public static String escapeForHtml(String text) {
+    private static String truncateToShort(final String text) {
+        if (text.length() <= 500) {
+            return text;
+        }
+        return text.substring(0, 500) + "...";
+    }
+
+    public static String prepareToView(String text) {
         if (text.trim().startsWith("<a href")) {
             return text;
         }
-        return text
+        final String textWithoutHTML = text
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
+        if (textWithoutHTML.length() <= 3500) {
+            return textWithoutHTML;
+        }
+        return textWithoutHTML.substring(0, 3500) + "...";
     }
 
 }
