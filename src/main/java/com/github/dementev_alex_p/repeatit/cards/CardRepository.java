@@ -13,7 +13,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     @Query("""
         SELECT c FROM Card c
         WHERE c.userId = :userId
-        AND c.cardCollection.isExcludedFromTraining = false
+        AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
         ORDER BY c.nextRepeatDate LIMIT :limit
         """)
     List<Card> findCardsForExtraTraining(long userId, final int limit);
@@ -22,7 +22,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
         SELECT count(c) FROM Card c
             WHERE c.userId = :userId
             AND c.nextRepeatDate <= CURRENT_DATE
-            AND c.cardCollection.isExcludedFromTraining = false
+            AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
         """)
     int findCountForDailyTrainingByUserId(final long userId);
 
@@ -30,8 +30,8 @@ public interface CardRepository extends JpaRepository<Card, Long> {
         SELECT c FROM Card c
         WHERE c.userId = :userId
         AND c.nextRepeatDate <= CURRENT_DATE
-        AND c.cardCollection.isExcludedFromTraining = false
-        ORDER BY c.nextRepeatDate
+        AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
+        ORDER BY c.nextRepeatDate, c.easinessFactor
         """)
     List<Card> findCardsForDailyTraining(long userId);
 

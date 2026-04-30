@@ -71,28 +71,25 @@ public class CardTextConverter {
 
     public static String convertCardToShortText(final Card card) {
         return card.getBackSide() == null
-                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, truncateToShort(prepareToView(card.getFrontSide())))
-                : String.format(CARD_VIEW_TEXT, prepareToView(card.getFrontSide()), prepareToView(card.getBackSide()));
+                ? String.format(CARD_VIEW_WITHOUT_BACK_SIDE_TEXT, prepareToView(card.getFrontSide(), 100))
+                : String.format(CARD_VIEW_TEXT, prepareToView(card.getFrontSide()), prepareToView(card.getBackSide(), 500));
     }
 
-    private static String truncateToShort(final String text) {
-        if (text.length() <= 500) {
-            return text;
-        }
-        return text.substring(0, 500) + "...";
+    public static String prepareToView(final String text) {
+        return prepareToView(text, 3500);
     }
 
-    public static String prepareToView(String text) {
+    private static String prepareToView(final String text, final int textLength) {
         if (text.trim().startsWith("<a href")) {
             return text;
         }
         final String textWithoutHTML = text
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
-        if (textWithoutHTML.length() <= 3500) {
+        if (textWithoutHTML.length() <= textLength) {
             return textWithoutHTML;
         }
-        return textWithoutHTML.substring(0, 3500) + "...";
+        return textWithoutHTML.substring(0, textLength) + "...";
     }
 
 }
