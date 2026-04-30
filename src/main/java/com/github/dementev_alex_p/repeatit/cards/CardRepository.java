@@ -12,25 +12,28 @@ public interface CardRepository extends JpaRepository<Card, Long> {
 
     @Query("""
         SELECT c FROM Card c
+        LEFT JOIN c.cardCollection collection
         WHERE c.userId = :userId
-        AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
+        AND (collection IS NULL OR collection.isExcludedFromTraining = false)
         ORDER BY c.nextRepeatDate LIMIT :limit
         """)
     List<Card> findCardsForExtraTraining(long userId, final int limit);
 
     @Query("""
         SELECT count(c) FROM Card c
-            WHERE c.userId = :userId
+        LEFT JOIN c.cardCollection collection
+        WHERE c.userId = :userId
             AND c.nextRepeatDate <= CURRENT_DATE
-            AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
+            AND (collection IS NULL OR collection.isExcludedFromTraining = false)
         """)
     int findCountForDailyTrainingByUserId(final long userId);
 
     @Query("""
         SELECT c FROM Card c
+        LEFT JOIN c.cardCollection collection
         WHERE c.userId = :userId
         AND c.nextRepeatDate <= CURRENT_DATE
-        AND (c.cardCollection IS NULL OR c.cardCollection.isExcludedFromTraining = false)
+        AND (collection IS NULL OR collection.isExcludedFromTraining = false)
         ORDER BY c.nextRepeatDate, c.easinessFactor
         """)
     List<Card> findCardsForDailyTraining(long userId);
