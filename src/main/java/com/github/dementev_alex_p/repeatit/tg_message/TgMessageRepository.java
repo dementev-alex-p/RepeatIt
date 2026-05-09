@@ -13,7 +13,16 @@ interface TgMessageRepository extends JpaRepository<TgMessage, Long> {
     @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt IS NULL ORDER BY m.createdAt DESC LIMIT 1")
     Optional<TgMessage> findLastAndNotDeletedByUserId(final long userId);
 
-    @Query("SELECT m FROM TgMessage m WHERE m.userId = :userId AND m.deletedAt IS NULL AND m.createdAt > :time ORDER BY m.createdAt DESC")
+    @Query("""
+            SELECT m1 FROM TgMessage m1
+            WHERE m1.deletedAt IS NULL AND m1.tgMessageId IN
+                (SELECT m.tgMessageId FROM TgMessage m
+                    WHERE m.userId = :userId AND m.deletedAt IS NULL
+                    GROUP BY m.tgMessageId
+                    HAVING MIN(m.createdAt) > :time
+                )
+            ORDER BY m1.createdAt DESC
+            """)
     List<TgMessage> findNotDeletedByUserIdAndCreatedBefore(final long userId, final LocalDateTime time);
 
     List<TgMessage> findByTgMessageIdInAndDeletedAtIsNull(final List<Integer> messageIds);
